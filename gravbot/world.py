@@ -11,10 +11,10 @@ from panda3d.bullet import BulletPlaneShape
 from panda3d.bullet import BulletBoxShape
 from panda3d.bullet import BulletRigidBodyNode
 
-from math import sqrt
+from math import hypot 
 import utilities
 
-worldsize = Point2(40,40)
+worldsize = Point2(100,100)
 
 class World():
     CULLDISTANCE = 10
@@ -100,7 +100,7 @@ class Rail(Entity):
         return
 
 def distance(p1, p2):
-    return sqrt((p1.x-p2.x) * (p1.x-p2.x) + (p1.y - p2.y)*(p1.y - p2.y)) 
+    return hypot(p1.x-p2.x, p1.y - p2.y) 
 
 class Wall(Entity):
     def __init__(self, world, pos):
