@@ -119,6 +119,8 @@ class Player(Entity):
         self.gunVector = Point2(cos(angle)*gunLength - self.armNode.getX()*5, sin(angle)*gunLength - self.armNode.getZ()*2)
         armAngle = atan2(self.gunVector.y, self.gunVector.x)
         self.arm.setHpr(self.armNode, 0, 0, -1 * degrees(armAngle))
+	self.location.x = self.node.getPos().x
+	self.location.y = self.node.getPos().z
 
     def moveLeft(self, switch):
         self.leftMove = switch 

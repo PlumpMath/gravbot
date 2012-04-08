@@ -11,11 +11,13 @@ from panda3d.bullet import BulletPlaneShape
 from panda3d.bullet import BulletBoxShape
 from panda3d.bullet import BulletRigidBodyNode
 
+from math import sqrt
 import utilities
 
-worldsize = Point2(20,20)
+worldsize = Point2(40,40)
 
 class World():
+    CULLDISTANCE = 10
     def __init__(self, size):
         self.bw = BulletWorld()
         self.bw.setGravity(0,0,-9.8)
@@ -36,6 +38,8 @@ class World():
         self.groundnp = render.attachNewNode(self.groundNode)
         self.groundnp.setPos(0, 0, 0)
         self.bw.attachRigidBody(self.groundNode)
+
+	self.culls = 0
 
     def update(self, timer):
         dt = globalClock.getDt()
@@ -95,10 +99,14 @@ class Rail(Entity):
         """
         return
 
+def distance(p1, p2):
+    return sqrt((p1.x-p2.x) * (p1.x-p2.x) + (p1.y - p2.y)*(p1.y - p2.y)) 
+
 class Wall(Entity):
     def __init__(self, world, pos):
         super(Wall, self).__init__()
         self.health = 100
+	self.world = world
 
         shape = BulletBoxShape(Vec3(0.5,2.0,0.5))
         self.bnode = BulletRigidBodyNode()
@@ -111,7 +119,21 @@ class Wall(Entity):
         self.obj.reparentTo(self.np)
         self.obj.setScale(1)
 
+	#for storing state if we are far from the camera
+	self.inScope = True 
+	self.hpr = Point3(0,0,0) 
+	self.pos = pos 
+
     def update(self, timer):
+	d = distance(self.pos, self.world.player.location)
+	if d > World.CULLDISTANCE and self.inScope:
+	    self.obj.hide()
+	    self.world.bw.removeRigidBody(self.bnode)
+	    self.inScope = False
+	if d < World.CULLDISTANCE and not self.inScope:    
+	    self.obj.show()    
+	    self.world.bw.attachRigidBody(self.bnode)
+	    self.inScope = True
         if self.health < 0:
             self.obj.remove()
 
