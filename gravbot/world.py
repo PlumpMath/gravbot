@@ -113,14 +113,15 @@ class Wall(Entity):
         self.bnode.addShape(shape)
         self.np = utilities.app.render.attachNewNode(self.bnode)
         self.np.setPos(pos.x,20,pos.y)
-        world.bw.attachRigidBody(self.bnode)
+        #world.bw.attachRigidBody(self.bnode)
 
         self.obj = utilities.loadObject("wall", depth = 0)
         self.obj.reparentTo(self.np)
         self.obj.setScale(1)
+	self.obj.hide()
 
 	#for storing state if we are far from the camera
-	self.inScope = True 
+	self.inScope = False
 	self.hpr = Point3(0,0,0) 
 	self.pos = pos 
 
