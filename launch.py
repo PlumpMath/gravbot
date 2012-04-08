@@ -8,7 +8,7 @@ def _run_app():
     app.run()
 
 
-def _run__test_app():
+def _run_test_app():
     from gravbot.mc import App
     app = App()
     app.run()
