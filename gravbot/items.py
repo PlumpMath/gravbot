@@ -58,7 +58,7 @@ class Flame(Entity):
     animspeed = 0.1 
     depth = 20 
     playerWidth = 3
-    speed = 20 
+    speed = 40 
 
     def __init__(self, world, pos, hpr):
         super(Flame, self).__init__()
@@ -78,8 +78,6 @@ class Flame(Entity):
         world.bw.attachRigidBody(self.bnode)
 
         self.curspr = 0
-        self.obj = self.anim[self.curspr]
-        self.obj.show() 
         self.livetime = 0
         self.delta = 0
 
@@ -121,6 +119,9 @@ class Flame(Entity):
             a.setScale(0.25, 1, 0.25)
             a.setPos(0, -0.1,0)
 
+        self.obj = self.anim[self.curspr]
+        self.obj.show() 
+
     def update(self, timer):
         #animation
         self.delta += timer
@@ -132,15 +133,14 @@ class Flame(Entity):
         if self.noCollideFrames > -1:
             self.noCollideFrames -= 1
 
-
         if self.delta > Flame.animspeed:
             self.delta = 0
             self.obj.hide()
             self.curspr += 1
         if self.curspr > len(self.anim)-1:
             self.curspr = 0
-            self.obj = self.anim[self.curspr]
-            self.obj.show()
+        self.obj = self.anim[self.curspr]
+        self.obj.show()
 
 class Grenade(Item):
     """
