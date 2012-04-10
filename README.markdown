@@ -3,6 +3,7 @@ gravbot
 
 LOREM IPSUM TROLOLOLEM
 
+can we push to bitbucket? y/n> _
 
 dev stuff
 ---------
