@@ -15,7 +15,7 @@ from panda3d.bullet import BulletRigidBodyNode
 from math import hypot 
 import utilities
 
-worldsize = Point2(10,10)
+worldsize = Point2(5,5)
 
 class World():
     CULLDISTANCE = 10
