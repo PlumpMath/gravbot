@@ -15,7 +15,7 @@ from panda3d.bullet import BulletRigidBodyNode
 from math import hypot 
 import utilities
 
-worldsize = Point2(5,5)
+worldsize = Point2(3,3)
 
 class World():
     CULLDISTANCE = 10
@@ -91,30 +91,11 @@ class World():
                 else:
                     self.pt[i].append(0)  
 
-        #pt[0][0] = 0	
-        #pt[1][0] = 0	
-        #pt[0][1] = 0	
-        #pt[1][1] = 0	
-        #pt[2][2] = 0
-        #pt[2][1] = 0
-        #pt[1][2] = 0
-        #pt[2][2] = 0 
-
-        for i in range(2, int(worldsize.x)):
-            for j in range(2, int(worldsize.y)):
-                if self.pt[i][j] == 1:
-		    pass
-                    #self.entities.append(Wall(self, Point2(i,j)))
-
         self.printpt()
 	self.wgs = list()
 	self.searchForWalls(self.pt)
-
-	for wallblock in self.wgs:
-	    print "block"
-	    for block in wallblock:
-	        print block
-                self.entities.append(Wall(self, Point2(block.x+5,block.y+5)))
+	
+	self.testWB = WallGroup(self, Point2(0,0),self.wgs[0])
 
     def searchForWalls(self, pt):
         for i in range(0, int(worldsize.x)):
@@ -214,8 +195,33 @@ class WallGroup(Entity):
         super(WallGroup, self).__init__()
 
 	self.mass = len(wallpoints)
-	# TODO  want to narrow this down to minimum set
+	# want to narrow this down to minimum set
 	self.hullpoints = list()
+
+	self.maxX = 0
+	self.maxY = 0
+	self.minX = 1000
+	self.minY = 1000
+
+	for point in wallpoints:
+	    self.maxX = max(self.maxX, point.x)
+	    self.minX = min(self.minX, point.x)
+	    self.maxY = max(self.maxY, point.y)
+	    self.minY = min(self.minY, point.y)
+
+	self.maxX += 1    
+	self.maxY += 1    
+
+	self.matrix = [ [ 0 for col in range(self.minY, self.maxY)] for row in range(self.minX, self.maxX)]    
+
+	for point in wallpoints:
+	    point.x -= self.minX
+	    point.y -= self.minY
+	    self.matrix[point.x][point.y] = 1
+	
+        self.offset = Point2(self.minX, self.minY) 
+
+        self.makeConvexHull(self,)
 
         # the starting wall has all vertices
 	# subsequent ones will just add another face
@@ -231,40 +237,32 @@ class WallGroup(Entity):
 	#self.walls.append(Wall())
 	self.walls = list()
 
-        self.prevwall = wallpoints[0]
-	self.prevwall.x -= pos.x
-	self.prevwall.y -= pos.z
-	for wall in wallpoints[1:]:
-	    # set the wall positions relative to the first node
-	    # this shouldn't really be a problem even if the first node disappears
-	    # though it does mean we need to be careful about getting the NodePath
-	    # position because it's essentially meaningless
-	    wall.x -= pos.x
-	    wall.y -= pos.z
-
-            xmod = 0
-	    ymod = 0
-	    # figure out which direction we're heading in
-
-	    self.hullpoints.append(wall.x, 0, wall.y)
-	    self.hullpoints.append(wall.x, 0, wall.y)
-	    self.hullpoints.append(wall.x, 0, wall.y)
-	    self.hullpoints.append(wall.x, 0, wall.y)
-
-	    self.prevwall = wall
-	    #self.walls.append(Wall())
-	  
-        shape = BulletConvexHullShape()
-
+	self.shape = BulletConvexHullShape()
         for p in self.hullpoints:
-	    shape.addPoint(p)
+	    self.shape.addPoint(p)
 
         self.bnode = BulletRigidBodyNode()
-        self.bnode.addShape(shape)
+        self.bnode.addShape(self.shape)
         self.np = utilities.app.render.attachNewNode(self.bnode)
         self.np.setPos(pos.x,20,pos.y)
 
-
+    # if we are continuing on our merry path in the same direction,
+    # we dont' need to add any points, such as in a straight line.
+    # if we are turning a corner or terminating, shit gets real
+    def makeConvexHull(self, i, j, direction):
+        # Terminate direction
+	if self.matrix[i][j] == 0:
+	   self.hullpoints.append()
+	   self.hullpoints.append()
+	  
+        if i > 0:
+	    self.makeWallGroup(self.pt, Pix(i-1,j), direction)
+        if i < worldsize.x-1:  
+	    self.makeWallGroup(self.pt, Pix(i+1,j), direction)
+ 	if j < worldsize.y-1:
+	    self.makeWallGroup(self.pt, Pix(i,j+1), direction)
+	if j > 0:
+	    self.makeWallGroup(self.pt, Pix(i,j-1), direction)
 
 class Pix():
     def __init__(self, x, y):
