@@ -5,6 +5,7 @@
 from entity import Entity
 from panda3d.core import Point2, Point3, BoundingBox, BoundingSphere, Vec3
 from panda3d.core import PerlinNoise2
+from panda3d.core import TransformState
 from player import Player
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletPlaneShape
@@ -15,13 +16,13 @@ from panda3d.bullet import BulletRigidBodyNode
 from math import hypot 
 import utilities
 
-worldsize = Point2(3,3)
+worldsize = Point2(20,20)
 
 class World():
     CULLDISTANCE = 10
     def __init__(self, size):
         self.bw = BulletWorld()
-        self.bw.setGravity(0,0,-9.8)
+        self.bw.setGravity(0,0,0)
         self.size = size
         self.perlin = PerlinNoise2()
 
@@ -94,8 +95,12 @@ class World():
         self.printpt()
 	self.wgs = list()
 	self.searchForWalls(self.pt)
+	self.testgroups = list()
+
+	for wg in self.wgs:
+	  self.testgroups.append(WallGroup(self, Point2(0,0), wg))
 	
-	self.testWB = WallGroup(self, Point2(0,0),self.wgs[0])
+	#self.testWB = WallGroup(self, Point2(0,0),self.wgs[0])
 
     def searchForWalls(self, pt):
         for i in range(0, int(worldsize.x)):
@@ -214,55 +219,31 @@ class WallGroup(Entity):
 
 	self.matrix = [ [ 0 for col in range(self.minY, self.maxY)] for row in range(self.minX, self.maxX)]    
 
-	for point in wallpoints:
-	    point.x -= self.minX
-	    point.y -= self.minY
-	    self.matrix[point.x][point.y] = 1
+	#for point in wallpoints:
+	#    point.x -= self.minX
+	#    point.y -= self.minY
+	#    self.matrix[point.x][point.y] = 1
 	
         self.offset = Point2(self.minX, self.minY) 
 
-        self.makeConvexHull(self,)
+	self.sizeX = len(self.matrix)
+	self.sizeY = len(self.matrix[0])
 
         # the starting wall has all vertices
 	# subsequent ones will just add another face
-	self.hullpoints.append(Point3(0.5, 0.5, 0.5))
-	self.hullpoints.append(Point3(0.5, 0.5, -0.5))
-	self.hullpoints.append(Point3(-0.5, 0.5, 0.5))
-	self.hullpoints.append(Point3(-0.5, 0.5, -0.5))
-
-	self.hullpoints.append(Point3(0.5, -0.5, 0.5))
-	self.hullpoints.append(Point3(0.5, -0.5, -0.5))
-	self.hullpoints.append(Point3(-0.5, -0.5, 0.5))
-	self.hullpoints.append(Point3(-0.5, -0.5, -0.5))
 	#self.walls.append(Wall())
 	self.walls = list()
-
-	self.shape = BulletConvexHullShape()
-        for p in self.hullpoints:
-	    self.shape.addPoint(p)
-
         self.bnode = BulletRigidBodyNode()
-        self.bnode.addShape(self.shape)
-        self.np = utilities.app.render.attachNewNode(self.bnode)
-        self.np.setPos(pos.x,20,pos.y)
 
-    # if we are continuing on our merry path in the same direction,
-    # we dont' need to add any points, such as in a straight line.
-    # if we are turning a corner or terminating, shit gets real
-    def makeConvexHull(self, i, j, direction):
-        # Terminate direction
-	if self.matrix[i][j] == 0:
-	   self.hullpoints.append()
-	   self.hullpoints.append()
-	  
-        if i > 0:
-	    self.makeWallGroup(self.pt, Pix(i-1,j), direction)
-        if i < worldsize.x-1:  
-	    self.makeWallGroup(self.pt, Pix(i+1,j), direction)
- 	if j < worldsize.y-1:
-	    self.makeWallGroup(self.pt, Pix(i,j+1), direction)
-	if j > 0:
-	    self.makeWallGroup(self.pt, Pix(i,j-1), direction)
+        for p in wallpoints:
+	    shape = BulletBoxShape(Vec3(0.5, 1.0, 0.5))
+            self.bnode.addShape(shape, TransformState.makePos(Point3(p.x, 0, p.y)))
+
+        self.bnode.setMass(len(wallpoints))
+	self.bnode.setAngularFactor(Vec3(0,1,0))
+        self.np = utilities.app.render.attachNewNode(self.bnode)
+        self.np.setPos(wallpoints[0].x,20,wallpoints[0].y)
+	world.bw.attachRigidBody(self.bnode)
 
 class Pix():
     def __init__(self, x, y):
