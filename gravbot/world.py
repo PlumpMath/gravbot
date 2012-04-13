@@ -33,34 +33,7 @@ class World():
         self.bgs = list()
         self.makeChunk(Point2(0,0)) 
 
-        # the lower rail
-        shape = BulletPlaneShape(Vec3(0, 0, 1), 1)
-        self.groundNode = BulletRigidBodyNode('Ground')
-        self.groundNode.addShape(shape)
-        self.groundnp = render.attachNewNode(self.groundNode)
-        self.groundnp.setPos(0, 0, 0)
-        self.bw.attachRigidBody(self.groundNode)
-
 	self.culls = 0
-
-	self.chtest = BulletConvexHullShape()
-	h = 0.5
-
-	self.chtest.addArray([
-	    Point3(h,h,h),
-	    Point3(-h,h,h),
-	    Point3(h,-h,h),
-	    Point3(-h,-h,h),
-	    Point3(h,h,-h),
-	    Point3(-h,h,-h),
-	    Point3(h,-h,-h),
-	    Point3(-h,-h,-h),
-	    ])
-	self.chbn = BulletRigidBodyNode()    
-        self.chbn.addShape(self.chtest)
-	self.chnp = render.attachNewNode(self.chbn)
-	self.chnp.setPos(0,20,30)
-	self.bw.attachRigidBody(self.chbn)
 
     def update(self, timer):
         dt = globalClock.getDt()
@@ -76,8 +49,6 @@ class World():
         # store enemies, bits of terrain and projectiles in entities
         # so we can do some collision detection
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))
-        # also need to put these around any other "edge" nodes
-        #self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*-200,0)))
 
         for i in range(-10, 10):
             self.entities.append(Rail(self, i * 10, 0))
@@ -92,7 +63,6 @@ class World():
                 else:
                     self.pt[i].append(0)  
 
-        self.printpt()
 	self.wgs = list()
 	self.searchForWalls(self.pt)
 	self.testgroups = list()
@@ -100,8 +70,6 @@ class World():
 	for wg in self.wgs:
 	  self.testgroups.append(WallGroup(self, Point2(0,0), wg))
 	
-	#self.testWB = WallGroup(self, Point2(0,0),self.wgs[0])
-
     def searchForWalls(self, pt):
         for i in range(0, int(worldsize.x)):
             for j in range(0, int(worldsize.y)):
@@ -203,35 +171,6 @@ class WallGroup(Entity):
 	# want to narrow this down to minimum set
 	self.hullpoints = list()
 
-	self.maxX = 0
-	self.maxY = 0
-	self.minX = 1000
-	self.minY = 1000
-
-	for point in wallpoints:
-	    self.maxX = max(self.maxX, point.x)
-	    self.minX = min(self.minX, point.x)
-	    self.maxY = max(self.maxY, point.y)
-	    self.minY = min(self.minY, point.y)
-
-	self.maxX += 1    
-	self.maxY += 1    
-
-	self.matrix = [ [ 0 for col in range(self.minY, self.maxY)] for row in range(self.minX, self.maxX)]    
-
-	#for point in wallpoints:
-	#    point.x -= self.minX
-	#    point.y -= self.minY
-	#    self.matrix[point.x][point.y] = 1
-	
-        self.offset = Point2(self.minX, self.minY) 
-
-	self.sizeX = len(self.matrix)
-	self.sizeY = len(self.matrix[0])
-
-        # the starting wall has all vertices
-	# subsequent ones will just add another face
-	#self.walls.append(Wall())
 	self.walls = list()
         self.bnode = BulletRigidBodyNode()
 
@@ -244,6 +183,10 @@ class WallGroup(Entity):
         self.np = utilities.app.render.attachNewNode(self.bnode)
         self.np.setPos(wallpoints[0].x,20,wallpoints[0].y)
 	world.bw.attachRigidBody(self.bnode)
+
+    def update(self, time):
+        return
+        
 
 class Pix():
     def __init__(self, x, y):
