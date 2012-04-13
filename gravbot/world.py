@@ -5,6 +5,7 @@
 from entity import Entity
 from panda3d.core import Point2, Point3, BoundingBox, BoundingSphere, Vec3
 from panda3d.core import PerlinNoise2
+from panda3d.core import TransformState
 from player import Player
 from panda3d.bullet import BulletWorld
 from panda3d.bullet import BulletPlaneShape
@@ -15,13 +16,13 @@ from panda3d.bullet import BulletRigidBodyNode
 from math import hypot 
 import utilities
 
-worldsize = Point2(5,5)
+worldsize = Point2(20,20)
 
 class World():
     CULLDISTANCE = 10
     def __init__(self, size):
         self.bw = BulletWorld()
-        self.bw.setGravity(0,0,-9.8)
+        self.bw.setGravity(0,0,0)
         self.size = size
         self.perlin = PerlinNoise2()
 
@@ -91,30 +92,15 @@ class World():
                 else:
                     self.pt[i].append(0)  
 
-        #pt[0][0] = 0	
-        #pt[1][0] = 0	
-        #pt[0][1] = 0	
-        #pt[1][1] = 0	
-        #pt[2][2] = 0
-        #pt[2][1] = 0
-        #pt[1][2] = 0
-        #pt[2][2] = 0 
-
-        for i in range(2, int(worldsize.x)):
-            for j in range(2, int(worldsize.y)):
-                if self.pt[i][j] == 1:
-		    pass
-                    #self.entities.append(Wall(self, Point2(i,j)))
-
         self.printpt()
 	self.wgs = list()
 	self.searchForWalls(self.pt)
+	self.testgroups = list()
 
-	for wallblock in self.wgs:
-	    print "block"
-	    for block in wallblock:
-	        print block
-                self.entities.append(Wall(self, Point2(block.x+5,block.y+5)))
+	for wg in self.wgs:
+	  self.testgroups.append(WallGroup(self, Point2(0,0), wg))
+	
+	#self.testWB = WallGroup(self, Point2(0,0),self.wgs[0])
 
     def searchForWalls(self, pt):
         for i in range(0, int(worldsize.x)):
@@ -214,57 +200,50 @@ class WallGroup(Entity):
         super(WallGroup, self).__init__()
 
 	self.mass = len(wallpoints)
-	# TODO  want to narrow this down to minimum set
+	# want to narrow this down to minimum set
 	self.hullpoints = list()
+
+	self.maxX = 0
+	self.maxY = 0
+	self.minX = 1000
+	self.minY = 1000
+
+	for point in wallpoints:
+	    self.maxX = max(self.maxX, point.x)
+	    self.minX = min(self.minX, point.x)
+	    self.maxY = max(self.maxY, point.y)
+	    self.minY = min(self.minY, point.y)
+
+	self.maxX += 1    
+	self.maxY += 1    
+
+	self.matrix = [ [ 0 for col in range(self.minY, self.maxY)] for row in range(self.minX, self.maxX)]    
+
+	#for point in wallpoints:
+	#    point.x -= self.minX
+	#    point.y -= self.minY
+	#    self.matrix[point.x][point.y] = 1
+	
+        self.offset = Point2(self.minX, self.minY) 
+
+	self.sizeX = len(self.matrix)
+	self.sizeY = len(self.matrix[0])
 
         # the starting wall has all vertices
 	# subsequent ones will just add another face
-	self.hullpoints.append(Point3(0.5, 0.5, 0.5))
-	self.hullpoints.append(Point3(0.5, 0.5, -0.5))
-	self.hullpoints.append(Point3(-0.5, 0.5, 0.5))
-	self.hullpoints.append(Point3(-0.5, 0.5, -0.5))
-
-	self.hullpoints.append(Point3(0.5, -0.5, 0.5))
-	self.hullpoints.append(Point3(0.5, -0.5, -0.5))
-	self.hullpoints.append(Point3(-0.5, -0.5, 0.5))
-	self.hullpoints.append(Point3(-0.5, -0.5, -0.5))
 	#self.walls.append(Wall())
 	self.walls = list()
-
-        self.prevwall = wallpoints[0]
-	self.prevwall.x -= pos.x
-	self.prevwall.y -= pos.z
-	for wall in wallpoints[1:]:
-	    # set the wall positions relative to the first node
-	    # this shouldn't really be a problem even if the first node disappears
-	    # though it does mean we need to be careful about getting the NodePath
-	    # position because it's essentially meaningless
-	    wall.x -= pos.x
-	    wall.y -= pos.z
-
-            xmod = 0
-	    ymod = 0
-	    # figure out which direction we're heading in
-
-	    self.hullpoints.append(wall.x, 0, wall.y)
-	    self.hullpoints.append(wall.x, 0, wall.y)
-	    self.hullpoints.append(wall.x, 0, wall.y)
-	    self.hullpoints.append(wall.x, 0, wall.y)
-
-	    self.prevwall = wall
-	    #self.walls.append(Wall())
-	  
-        shape = BulletConvexHullShape()
-
-        for p in self.hullpoints:
-	    shape.addPoint(p)
-
         self.bnode = BulletRigidBodyNode()
-        self.bnode.addShape(shape)
+
+        for p in wallpoints:
+	    shape = BulletBoxShape(Vec3(0.5, 1.0, 0.5))
+            self.bnode.addShape(shape, TransformState.makePos(Point3(p.x, 0, p.y)))
+
+        self.bnode.setMass(len(wallpoints))
+	self.bnode.setAngularFactor(Vec3(0,1,0))
         self.np = utilities.app.render.attachNewNode(self.bnode)
-        self.np.setPos(pos.x,20,pos.y)
-
-
+        self.np.setPos(wallpoints[0].x,20,wallpoints[0].y)
+	world.bw.attachRigidBody(self.bnode)
 
 class Pix():
     def __init__(self, x, y):
