@@ -20,7 +20,7 @@ class Player(Entity):
     def __init__(self, world):
         super(Player, self).__init__()
 
-        self.obj = utilities.loadObject("player", depth=20)
+        self.obj = utilities.loadObject("tdplayer", depth=20)
 
         self.world = world 
         self.health = 100
@@ -64,10 +64,10 @@ class Player(Entity):
         self.currentItem = self.inventory["Blowtorch"]
         self.currentItem.equip()
 
-        self.armNode = self.obj.attachNewNode("arm")
-        self.armNode.setPos(0.20,0,0.08)
-        self.arm = utilities.loadObject("arm", scaleX = 0.5,scaleY = 0.5, depth = -0.2)
-        self.arm.reparentTo(self.armNode)
+        #self.armNode = self.obj.attachNewNode("arm")
+        #self.armNode.setPos(0.20,0,0.08)
+        #self.arm = utilities.loadObject("arm", scaleX = 0.5,scaleY = 0.5, depth = -0.2)
+        #self.arm.reparentTo(self.armNode)
 
     def activate(self):
         self.currentItem.activate()
@@ -112,13 +112,8 @@ class Player(Entity):
         # but keep the camera steady vertically
         utilities.app.camera.setPos(self.node.getPos().x, 0, self.node.getPos().z)
 
-        #move arm into correct position.
+	self.obj.setHpr(0, 0, -1 * degrees(angle))
 
-        gunLength = 2.0
-
-        self.gunVector = Point2(cos(angle)*gunLength - self.armNode.getX()*5, sin(angle)*gunLength - self.armNode.getZ()*2)
-        armAngle = atan2(self.gunVector.y, self.gunVector.x)
-        self.arm.setHpr(self.armNode, 0, 0, -1 * degrees(armAngle))
 	self.location.x = self.node.getPos().x
 	self.location.y = self.node.getPos().z
 

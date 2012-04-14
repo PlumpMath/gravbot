@@ -40,7 +40,7 @@ class Blowtorch(Item):
     """
     def __init__(self, world, player):
         super(Blowtorch, self).__init__(world, player)
-        self.obj = utilities.loadObject("blowtorch", scaleX = 1, scaleY = 1, depth = -0.2)
+        self.obj = utilities.loadObject("blowtorch", scaleX = 1, scaleY = 1, depth = 0.2)
         self.obj.hide()
 
     def activate(self):
@@ -49,7 +49,8 @@ class Blowtorch(Item):
         return True
 
     def update(self, timer):
-        self.obj.setHpr(self.player.obj, 0, 0, -1 * degrees(self.player.angle))
+        return
+        #self.obj.setHpr(self.player.obj, 0, 0, -1 * degrees(self.player.angle))
 
 class Flame(Entity):
     """
