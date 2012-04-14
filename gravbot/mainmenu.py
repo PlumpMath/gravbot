@@ -11,9 +11,9 @@ class MainMenu(GameScreen):
 
         self.region = RocketRegion.make('pandaRocket', self.app.win)
         self.region.setActive(1)
-        context = self.region.getContext()
+        self.context = self.region.getContext()
 
-        self.menu = context.LoadDocument('menus/main_menu.rml')
+        self.menu = self.context.LoadDocument('menus/main_menu.rml')
         self.menu.hook = self
 
     def enter(self):
@@ -26,6 +26,11 @@ class MainMenu(GameScreen):
     def exit(self):
         self.region.setActive(0)
         self.menu.Close()
+
+        ih = self.region.getInputHandler()
+        del(ih)
+        del(self.context)
+        del(self.region)
 
     def pause(self):
         self.region.setActive(0)

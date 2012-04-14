@@ -11,10 +11,11 @@ class PauseMenu(GameScreen):
         LoadFontFace("menus/Delicious-Roman.otf")
 
         self.region = RocketRegion.make('pauseMenuRegion', self.app.win)
+        print self.region.__doc__
         self.region.setActive(1)
-        context = self.region.getContext()
+        self.context = self.region.getContext()
 
-        self.menu = context.LoadDocument('menus/pause_menu.rml')
+        self.menu = self.context.LoadDocument('menus/pause_menu.rml')
         self.menu.hook = self
         
     def enter(self):
@@ -26,8 +27,12 @@ class PauseMenu(GameScreen):
 
     def exit(self):
         self.region.setActive(0)
+        self.menu.Close()
 
-        # remove input handler?
+        ih = self.region.getInputHandler()
+        del(ih)
+        del(self.context)
+        del(self.region)
 
         self.parent.resume()
 

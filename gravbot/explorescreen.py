@@ -1,4 +1,5 @@
 from gamescreen import GameScreen
+from pausemenu import PauseMenu
 
 from math import pi, sin, cos
 from direct.showbase.ShowBase import ShowBase
@@ -51,6 +52,8 @@ class ExploreScreen(GameScreen):
 
         self.app.accept("escape", sys.exit, [])
 
+        self.app.accept("p", self.pause, []) 
+
         self.app.mousePos = Point2()
         self.app.disableMouse()
 
@@ -75,6 +78,16 @@ class ExploreScreen(GameScreen):
 	    self.debugNP.show()
 	else:
 	    self.debugNP.hide()    
+
+    def pause(self):
+        self.app.taskMgr.remove("update")
+        self.pausemenu = PauseMenu(self.app, self)
+
+        self.pausemenu.enter()
+
+    def resume(self):
+
+        self.app.taskMgr.add(self.update, "update")
 
     def update(self, task):
 
