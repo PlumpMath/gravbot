@@ -41,37 +41,40 @@ class ExploreScreen(GameScreen):
         self.app.accept("d", self.world.player.moveRight, [True])
         self.app.accept("d-up", self.world.player.moveRight, [False])
 
-        self.app.accept("space", self.world.player.jump, [True])
-        self.app.accept("space-up", self.world.player.jump, [False])
+        self.app.accept("w", self.world.player.jump, [True])
+        self.app.accept("w-up", self.world.player.jump, [False])
 
-        self.app.accept("c", self.world.player.crouch, [True])
-        self.app.accept("c-up", self.world.player.crouch, [False])
+        self.app.accept("s", self.world.player.crouch, [True])
+        self.app.accept("s-up", self.world.player.crouch, [False])
 
         self.app.accept("mouse1", self.world.player.activate, [])
 
         self.app.accept("escape", sys.exit, [])
-
-        #self.app.accept("h", self.showDBG, [True])
-        #self.app.accept("h-up", self.showDBG, [False])
 
         self.app.mousePos = Point2()
         self.app.disableMouse()
 
         self.app.rl = base.camLens.makeCopy()
 
+        if utilities.debug:
+          self.app.accept("h", self.showDBG, [True])
+          self.app.accept("h-up", self.showDBG, [False])
 
-        #bullet testing
-        #debugNode = BulletDebugNode('Debug')
-        #debugNode.showWireframe(True)
-        #debugNode.showConstraints(True)
-        #debugNode.showBoundingBoxes(False)
-        #debugNode.showNormals(False)
-        #self.debugNP = render.attachNewNode(debugNode)
-        #self.debugNP.show()
+          #bullet debug rendering 
+          debugNode = BulletDebugNode('Debug')
+          debugNode.showWireframe(True)
+          debugNode.showConstraints(True)
+          debugNode.showBoundingBoxes(False)
+          debugNode.showNormals(False)
+          self.debugNP = render.attachNewNode(debugNode)
+          self.debugNP.show()
+          self.world.bw.setDebugNode(self.debugNP.node())
 
-        #self.world.bw.setDebugNode(self.debugNP.node())
-    def onContactAdded(self, n1, n2):
-        print "terribad"
+    def showDBG(self, b):
+        if b:
+	    self.debugNP.show()
+	else:
+	    self.debugNP.hide()    
 
     def update(self, task):
 

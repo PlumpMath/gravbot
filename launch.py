@@ -4,20 +4,15 @@ run the game, optionally with profiling ...
 
 import sys
 
-def _run_app():
+def _run_app(arg):
     from gravbot.app import App
-    app = App()
-    app.run()
-
-def _run_test_app():
-    from gravbot.mc import App
-    app = App()
+    app = App(arg)
     app.run()
 
 def _print_usage(out):
     out.write('usage: [--profile] [--test]\n')
     out.write('\t--profile : run with python profiling\n')
-    out.write('\t--test    : run in test mode (mc.py)\n')
+    out.write('\t--test    : run in test mode\n')
 
 def _complain_about_usage_and_die():
     _print_usage(sys.stderr)
@@ -59,15 +54,15 @@ def main():
         else:
             options[arg] = True
 
+    apparg = ""
+    entry_point = _run_app
     if options['--test']:
-        entry_point = _run_test_app
-    else:
-        entry_point = _run_app
+        apparg  =  "test"
 
     if options['--profile']:
         entry_point = _wrap_with_profiling(entry_point)
 
-    entry_point()
+    entry_point(apparg)
     sys.exit(0)
 
 if __name__ == '__main__':

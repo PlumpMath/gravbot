@@ -3,11 +3,15 @@ from panda3d.core import Point2, Point3, Texture
 
 SPRITE_POS = 55
 app = None
+debug = False
 
 def setApp(a):
     global app 
     app = a
 
+def setDebug():
+    global debug
+    debug = True
 
 def loadObject(tex = None, pos = Point2(0,0), depth = SPRITE_POS, transparency = True, scaleX = 1, scaleY = 1, scale = None):
     global app
