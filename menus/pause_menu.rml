@@ -1,0 +1,20 @@
+<rml>
+    <head>
+        <title>Pause Menu</title>
+        <link type="text/rcss" href="gravbot.rcss" />
+        <style>
+            body
+            {
+                text-align: center;
+                top: 30%;
+                margin: auto;
+            }
+
+        </style>
+    </head>
+    <body>
+        <button onclick="document.hook.exit()">Resume</button>
+        <button>Other Button</button>
+        <button>Exit to Main Menu</button>
+    </body>
+</rml>
