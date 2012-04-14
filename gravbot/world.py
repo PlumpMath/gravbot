@@ -132,44 +132,21 @@ def distance(p1, p2):
     return hypot(p1.x-p2.x, p1.y - p2.y) 
 
 class Wall(Entity):
-    def __init__(self, world, pos, grouped = False):
+    def __init__(self, world, posX, posY, group, tile):
         super(Wall, self).__init__()
+
+	self.x = posX
+	self.y = posY
+
         self.health = 100
 	self.world = world
 
-	if not grouped:
-            shape = BulletBoxShape(Vec3(0.5,2.0,0.5))
-            self.bnode = BulletRigidBodyNode()
-            self.bnode.addShape(shape)
-            self.np = utilities.app.render.attachNewNode(self.bnode)
-            self.np.setPos(pos.x,20,pos.y)
-            #world.bw.attachRigidBody(self.bnode)
+	self.obj = utilities.loadObject(tile, depth=0, pos = Point2(posX, posY))
+	self.obj.reparentTo(group.np)
 
-            self.obj = utilities.loadObject("wall", depth = 0)
-            self.obj.reparentTo(self.np)
-            self.obj.setScale(1)
-	    self.obj.hide()
+	self.shape = BulletBoxShape(Vec3(0.5, 1.0, 0.5))
+	group.bnode.addShape(self.shape, TransformState.makePos(Point3(posX, 0, posY)))
 
-	    #for storing state if we are far from the camera
-	    self.inScope = False
-	    self.hpr = Point3(0,0,0) 
-	    self.pos = pos 
-	else:
-	    return
-	    
-
-    def update(self, timer):
-	d = distance(self.pos, self.world.player.location)
-	if d > World.CULLDISTANCE and self.inScope:
-	    self.obj.hide()
-	    self.world.bw.removeRigidBody(self.bnode)
-	    self.inScope = False
-	if d < World.CULLDISTANCE and not self.inScope:    
-	    self.obj.show()    
-	    self.world.bw.attachRigidBody(self.bnode)
-	    self.inScope = True
-        if self.health < 0:
-            self.obj.remove()
 
 # Probably want to convert the list of points to a graph to support
 # cutting an object into two pieces
@@ -184,20 +161,28 @@ class WallGroup(Entity):
 	self.walls = list()
         self.bnode = BulletRigidBodyNode()
 
-        for p in wallpoints:
-	    shape = BulletBoxShape(Vec3(0.5, 1.0, 0.5))
-            self.bnode.addShape(shape, TransformState.makePos(Point3(p.x, 0, p.y)))
-
         self.bnode.setMass(len(wallpoints))
 	self.bnode.setAngularFactor(Vec3(0,1,0))
         self.np = utilities.app.render.attachNewNode(self.bnode)
         self.np.setPos(wallpoints[0].x,20,wallpoints[0].y)
+
+        for p in wallpoints:
+	    self.walls.append(Wall(world, p.x, p.y, self, "wall"))
+
 	world.bw.attachRigidBody(self.bnode)
 
-    def update(self, time):
-        return
-        
-
+    def update(self, timer):
+	d = distance(self.pos, self.world.player.location)
+	if d > World.CULLDISTANCE and self.inScope:
+	    self.obj.hide()
+	    self.world.bw.removeRigidBody(self.bnode)
+	    self.inScope = False
+	if d < World.CULLDISTANCE and not self.inScope:    
+	    self.obj.show()    
+	    self.world.bw.attachRigidBody(self.bnode)
+	    self.inScope = True
+        if self.health < 0:
+            self.obj.remove()
 class Pix():
     def __init__(self, x, y):
         self.x = int(x)
