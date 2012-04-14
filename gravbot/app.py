@@ -1,11 +1,13 @@
 from direct.showbase.ShowBase import ShowBase
 from gravbot.mainmenu import MainMenu
+from panda3d.core import loadPrcFileData
 
 class App(ShowBase):
 
     def __init__(self):
         ShowBase.__init__(self)
-        
+
+        loadPrcFileData('', 'bullet-enable-contact-events true') 
         self.screens = []
         self.screens.append(MainMenu(self))
 

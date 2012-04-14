@@ -21,6 +21,8 @@ worldsize = Point2(20,20)
 class World():
     CULLDISTANCE = 10
     def __init__(self, size):
+        utilities.app.accept('bullet-contact-added', self.onContactAdded) 
+        utilities.app.accept('bullet-contact-destroyed', self.onContactDestroyed) 
         self.bw = BulletWorld()
         self.bw.setGravity(0,0,0)
         self.size = size
@@ -39,10 +41,10 @@ class World():
         dt = globalClock.getDt()
         self.bw.doPhysics(dt)
 
-        self.player.update(timer)
+        self.player.update(dt)
 
         for entity in self.entities:
-            entity.update(timer)
+            entity.update(dt)
 
     # Generate a $worldsize chunk of data with bottom left corner at $pos
     def makeChunk(self, pos):
@@ -106,6 +108,14 @@ class World():
     
     def addEntity(self, entity):
         self.entities.append(entity)
+
+    def onContactAdded(self, node1, node2):
+        print "contact between " + str(type(node1)) + " and " + str(type(node2))
+	return
+
+    def onContactDestroyed(self, node1, node2):
+        print "contact between " + str(type(node1)) + " and " + str(type(node2))
+	return
 
 class Rail(Entity):
     def __init__(self, world, posX, posY):

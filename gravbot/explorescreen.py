@@ -54,13 +54,11 @@ class ExploreScreen(GameScreen):
         #self.app.accept("h", self.showDBG, [True])
         #self.app.accept("h-up", self.showDBG, [False])
 
-        self.prevTime = 0
-
         self.app.mousePos = Point2()
         self.app.disableMouse()
 
-
         self.app.rl = base.camLens.makeCopy()
+
 
         #bullet testing
         #debugNode = BulletDebugNode('Debug')
@@ -72,14 +70,14 @@ class ExploreScreen(GameScreen):
         #self.debugNP.show()
 
         #self.world.bw.setDebugNode(self.debugNP.node())
+    def onContactAdded(self, n1, n2):
+        print "terribad"
 
     def update(self, task):
-        delta = task.time - self.prevTime
-        self.prevTime = task.time
 
         if(self.app.mouseWatcherNode.hasMouse()):
             self.app.mousePos.x = self.app.mouseWatcherNode.getMouseX()
             self.app.mousePos.y = self.app.mouseWatcherNode.getMouseY()
-            self.world.update(delta)  
+            self.world.update(task.time)  
 
         return Task.cont
