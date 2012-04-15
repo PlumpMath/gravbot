@@ -38,22 +38,24 @@ class World():
 	self.culls = 0
 
     def update(self, timer):
-        for entity in self.entities:
-	    if (entity.remove):
-	        self.entities.remove(entity)
-
         dt = globalClock.getDt()
         self.bw.doPhysics(dt)
+
+	for entity in self.entities:
+	    if entity.remove == True:
+	        entity.destroy()
+		self.entities.remove(entity)
+
+        for entity in self.entities:
+	    if isinstance(entity, Flame):
+	        ctest = self.bw.contactTest(entity.bnode)
+		if ctest.getNumContacts() > 0:
+	            entity.remove = True
 
         self.player.update(dt)
 
         for entity in self.entities:
             entity.update(dt)
-	    if isinstance(entity, Flame):
-	        ctest = self.bw.contactTest(entity.bnode)
-		if ctest.getNumContacts() > 0:
-	            entity.remove = True
-	            entity.destroy()
 
     # Generate a $worldsize chunk of data with bottom left corner at $pos
     def makeChunk(self, pos):

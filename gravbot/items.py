@@ -67,7 +67,7 @@ class Flame(Entity):
 
         self.shape = BulletBoxShape(Vec3(0.1,0.05,0.05))
         self.bnode = BulletRigidBodyNode()
-        self.bnode.setMass(0.001)
+        self.bnode.setMass(0.1)
         self.bnode.addShape(self.shape)
 
         self.np = utilities.app.render.attachNewNode(self.bnode)
