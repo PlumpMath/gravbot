@@ -1,21 +1,23 @@
-from gamescreen import GameScreen
-from explorescreen import ExploreScreen
 from panda3d.rocket import LoadFontFace, RocketRegion, RocketInputHandler
+from gamescreen import GameScreen
 
-class MainMenu(GameScreen):
+class PauseMenu(GameScreen):
 
-    def __init__(self, app):
+    def __init__(self, app, parent):
         GameScreen.__init__(self, app)
+
+        self.parent = parent
 
         LoadFontFace("menus/Delicious-Roman.otf")
 
-        self.region = RocketRegion.make('pandaRocket', self.app.win)
+        self.region = RocketRegion.make('pauseMenuRegion', self.app.win)
+        print self.region.__doc__
         self.region.setActive(1)
         self.context = self.region.getContext()
 
-        self.menu = self.context.LoadDocument('menus/main_menu.rml')
+        self.menu = self.context.LoadDocument('menus/pause_menu.rml')
         self.menu.hook = self
-
+        
     def enter(self):
         self.menu.Show()
 
@@ -32,16 +34,5 @@ class MainMenu(GameScreen):
         del(self.context)
         del(self.region)
 
-    def pause(self):
-        self.region.setActive(0)
+        self.parent.resume()
 
-    def resume(self):
-        self.region.setActive(1)
-
-    def loadMenu(self, opt):
-        print "hello menu " + opt
-
-    def startExplore(self):
-        self.app.screens.append(ExploreScreen(self.app))
-        self.exit()
-        self.app.screens[-1].enter()
