@@ -23,8 +23,6 @@ worldsize = Point2(3,3)
 class World():
     CULLDISTANCE = 10
     def __init__(self, size):
-        #utilities.app.accept('bullet-contact-added', self.onContactAdded) 
-        utilities.app.accept('bullet-contact-destroyed', self.onContactDestroyed) 
         self.bw = BulletWorld()
         self.bw.setGravity(0,0,0)
         self.size = size
@@ -40,6 +38,10 @@ class World():
 	self.culls = 0
 
     def update(self, timer):
+        for entity in self.entities:
+	    if (entity.remove):
+	        self.entities.remove(entity)
+
         dt = globalClock.getDt()
         self.bw.doPhysics(dt)
 
@@ -47,8 +49,11 @@ class World():
 
         for entity in self.entities:
             entity.update(dt)
-	    if (entity.remove):
-	        self.entities.remove(entity)
+	    if isinstance(entity, Flame):
+	        ctest = self.bw.contactTest(entity.bnode)
+		if ctest.getNumContacts() > 0:
+	            entity.remove = True
+	            entity.destroy()
 
     # Generate a $worldsize chunk of data with bottom left corner at $pos
     def makeChunk(self, pos):
@@ -109,31 +114,6 @@ class World():
     
     def addEntity(self, entity):
         self.entities.append(entity)
-
-    def onContactAdded(self, node1, node2):
-        entity = node1.getPythonTag("entity")
-        entity2 = node2.getPythonTag("entity")
-
-        if entity in self.entities:
-	    if (isinstance(entity, Flame)):
-	        entity.remove = True
-        if entity2 in self.entities:
-	    if (isinstance(entity2, Flame)):
-	        entity.remove = True
-	return
-
-    def onContactDestroyed(self, node1, node2):
-        entity = node1.getPythonTag("entity")
-        entity2 = node2.getPythonTag("entity")
-
-        if entity in self.entities:
-	    if (isinstance(entity, Flame)):
-	        entity.destroy()
-	        self.entities.remove(entity)
-        if entity2 in self.entities:
-	    if (isinstance(entity2, Flame)):
-	        entity2.destroy()
-	        self.entities.remove(entity2)
 
 class Rail(Entity):
     def __init__(self, world, posX, posY):

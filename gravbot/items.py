@@ -59,7 +59,7 @@ class Flame(Entity):
     animspeed = 0.1 
     depth = 20 
     playerWidth = 3
-    speed = 40 
+    speed = 30 
     maxlife = 10
 
     def __init__(self, world, pos, hpr):
@@ -133,6 +133,10 @@ class Flame(Entity):
         self.delta += timer
         self.livetime += timer
 
+	if self.remove:
+	    self.obj.hide()
+	    return
+
         if self.noCollideFrames == 0:
             self.bnode.setIntoCollideMask(BitMask32.allOn())
 
@@ -152,6 +156,8 @@ class Flame(Entity):
 	    self.remove = True
 
     def destroy(self):
+        self.remove = True
+        self.obj.hide()
         for model in self.anim:
 	    model.remove()
 	self.world.bw.removeRigidBody(self.bnode)    
