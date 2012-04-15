@@ -40,7 +40,7 @@ class Blowtorch(Item):
     """
     def __init__(self, world, player):
         super(Blowtorch, self).__init__(world, player)
-        self.obj = utilities.loadObject("blowtorch", scaleX = 1, scaleY = 1, depth = 0.2)
+        self.obj = utilities.loadObject("blowtorch", scaleX = 1, scaleY = 1, depth = 0.5)
         self.obj.hide()
 
     def activate(self):
@@ -60,6 +60,7 @@ class Flame(Entity):
     depth = 20 
     playerWidth = 3
     speed = 40 
+    maxlife = 10
 
     def __init__(self, world, pos, hpr):
         super(Flame, self).__init__()
@@ -70,6 +71,8 @@ class Flame(Entity):
         self.bnode.addShape(self.shape)
 
         self.np = utilities.app.render.attachNewNode(self.bnode)
+
+	self.remove = False
 
         self.world =world 
         self.anim = list()
@@ -106,8 +109,8 @@ class Flame(Entity):
         self.bnode.setLinearFactor(Vec3(1,0,1))
         self.bnode.setGravity(Vec3(0,0,0))
 
-        self.bnode.setCcdMotionThreshold(1e-7)
-        self.bnode.setCcdSweptSphereRadius(0.10)
+        #self.bnode.setCcdMotionThreshold(1e-7)
+        #self.bnode.setCcdSweptSphereRadius(0.10)
 
         self.bnode.notifyCollisions(True)
         self.bnode.setIntoCollideMask(BitMask32.bit(1))
@@ -122,6 +125,8 @@ class Flame(Entity):
 
         self.obj = self.anim[self.curspr]
         self.obj.show() 
+
+	self.bnode.setPythonTag("entity", self)
 
     def update(self, timer):
         #animation
@@ -142,6 +147,14 @@ class Flame(Entity):
             self.curspr = 0
         self.obj = self.anim[self.curspr]
         self.obj.show()
+
+	if self.livetime > Flame.maxlife:
+	    self.remove = True
+
+    def destroy(self):
+        for model in self.anim:
+	    model.remove()
+	self.world.bw.removeRigidBody(self.bnode)    
 
 class Grenade(Item):
     """

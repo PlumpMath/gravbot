@@ -16,13 +16,14 @@ from panda3d.bullet import BulletRigidBodyNode
 from math import hypot 
 import utilities
 from random import randint
+from items import Flame
 
-worldsize = Point2(20,20)
+worldsize = Point2(3,3)
 
 class World():
     CULLDISTANCE = 10
     def __init__(self, size):
-        utilities.app.accept('bullet-contact-added', self.onContactAdded) 
+        #utilities.app.accept('bullet-contact-added', self.onContactAdded) 
         utilities.app.accept('bullet-contact-destroyed', self.onContactDestroyed) 
         self.bw = BulletWorld()
         self.bw.setGravity(0,0,0)
@@ -46,6 +47,8 @@ class World():
 
         for entity in self.entities:
             entity.update(dt)
+	    if (entity.remove):
+	        self.entities.remove(entity)
 
     # Generate a $worldsize chunk of data with bottom left corner at $pos
     def makeChunk(self, pos):
@@ -53,9 +56,6 @@ class World():
         # so we can do some collision detection
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))
 
-        for i in range(-10, 10):
-            self.entities.append(Rail(self, i * 10, 0))
-    
         self.pt = list()
 
         for i in range(0, int(worldsize.x)):
@@ -111,10 +111,29 @@ class World():
         self.entities.append(entity)
 
     def onContactAdded(self, node1, node2):
+        entity = node1.getPythonTag("entity")
+        entity2 = node2.getPythonTag("entity")
+
+        if entity in self.entities:
+	    if (isinstance(entity, Flame)):
+	        entity.remove = True
+        if entity2 in self.entities:
+	    if (isinstance(entity2, Flame)):
+	        entity.remove = True
 	return
 
     def onContactDestroyed(self, node1, node2):
-	return
+        entity = node1.getPythonTag("entity")
+        entity2 = node2.getPythonTag("entity")
+
+        if entity in self.entities:
+	    if (isinstance(entity, Flame)):
+	        entity.destroy()
+	        self.entities.remove(entity)
+        if entity2 in self.entities:
+	    if (isinstance(entity2, Flame)):
+	        entity2.destroy()
+	        self.entities.remove(entity2)
 
 class Rail(Entity):
     def __init__(self, world, posX, posY):
@@ -155,8 +174,21 @@ class WallGroup(Entity):
         super(WallGroup, self).__init__()
 
 	self.mass = len(wallpoints)*WallGroup.wallmass
-	# want to narrow this down to minimum set
-	self.hullpoints = list()
+
+	# find approximate centre 
+        self.minX = wallpoints[0].x
+        self.minY = wallpoints[0].y
+        self.maxX = wallpoints[0].x
+        self.maxY = wallpoints[0].y
+
+        for point in wallpoints:
+	    self.minX = min(point.x, self.minX)
+	    self.minY = min(point.y, self.minY)
+	    self.maxX = max(point.x, self.maxX)
+	    self.maxY = max(point.y, self.maxY)
+
+	self.cog = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
+	self.rad = max(self.maxX - self.minX, self.maxY - self.minY)
 
 	self.walls = list()
         self.bnode = BulletRigidBodyNode()
@@ -164,7 +196,12 @@ class WallGroup(Entity):
         self.bnode.setMass(len(wallpoints))
 	self.bnode.setAngularFactor(Vec3(0,1,0))
         self.np = utilities.app.render.attachNewNode(self.bnode)
-        self.np.setPos(wallpoints[0].x,20,wallpoints[0].y)
+        self.np.setPos(self.cog.x+pos.x,20,self.cog.y+pos.y)
+
+	self.bnode.setPythonTag("entity", self)
+
+
+	self.inScope = False
 
         for p in wallpoints:
             tile = "wall"
@@ -172,12 +209,13 @@ class WallGroup(Entity):
 	        tile = "floor1"
 	    else:
 	        tile = "floor2"
-	    self.walls.append(Wall(world, p.x, p.y, self, tile))
+	    self.walls.append(Wall(world, p.x-self.cog.x, p.y-self.cog.y, self, tile))
 
 	world.bw.attachRigidBody(self.bnode)
+	self.bnode.notifyCollisions(True)
 
     def update(self, timer):
-	d = distance(self.pos, self.world.player.location)
+	d = distance(self.np.getPos(), self.world.player.location)
 	if d > World.CULLDISTANCE and self.inScope:
 	    self.obj.hide()
 	    self.world.bw.removeRigidBody(self.bnode)
@@ -188,6 +226,7 @@ class WallGroup(Entity):
 	    self.inScope = True
         if self.health < 0:
             self.obj.remove()
+
 class Pix():
     def __init__(self, x, y):
         self.x = int(x)

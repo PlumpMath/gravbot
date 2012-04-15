@@ -6,6 +6,7 @@ class Entity(object):
         self.location = None 
         self.obj = None
         self.bounds = list()
+	self.remove = False
      
     def update(self, timer):
         return True
