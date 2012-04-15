@@ -15,6 +15,7 @@ from panda3d.bullet import BulletRigidBodyNode
 
 from math import hypot 
 import utilities
+from random import randint
 
 worldsize = Point2(20,20)
 
@@ -110,11 +111,9 @@ class World():
         self.entities.append(entity)
 
     def onContactAdded(self, node1, node2):
-        print "contact between " + str(type(node1)) + " and " + str(type(node2))
 	return
 
     def onContactDestroyed(self, node1, node2):
-        print "contact between " + str(type(node1)) + " and " + str(type(node2))
 	return
 
 class Rail(Entity):
@@ -151,10 +150,11 @@ class Wall(Entity):
 # Probably want to convert the list of points to a graph to support
 # cutting an object into two pieces
 class WallGroup(Entity):
+    wallmass = 500.0
     def __init__(self, world, pos, wallpoints):
         super(WallGroup, self).__init__()
 
-	self.mass = len(wallpoints)
+	self.mass = len(wallpoints)*WallGroup.wallmass
 	# want to narrow this down to minimum set
 	self.hullpoints = list()
 
@@ -167,7 +167,12 @@ class WallGroup(Entity):
         self.np.setPos(wallpoints[0].x,20,wallpoints[0].y)
 
         for p in wallpoints:
-	    self.walls.append(Wall(world, p.x, p.y, self, "wall"))
+            tile = "wall"
+	    if randint(0, 10) < 8:
+	        tile = "floor1"
+	    else:
+	        tile = "floor2"
+	    self.walls.append(Wall(world, p.x, p.y, self, tile))
 
 	world.bw.attachRigidBody(self.bnode)
 
