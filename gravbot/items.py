@@ -87,7 +87,6 @@ class Flame(Entity):
 
         self.pos = pos
         self.pos.y = Flame.depth
-        #self.pos.z -= 0.2 
         self.hpr = hpr
         self.vel = Point2()
         self.vel.x = cos(world.player.angle)*Flame.speed
@@ -109,8 +108,8 @@ class Flame(Entity):
         self.bnode.setLinearFactor(Vec3(1,0,1))
         self.bnode.setGravity(Vec3(0,0,0))
 
-        #self.bnode.setCcdMotionThreshold(1e-7)
-        #self.bnode.setCcdSweptSphereRadius(0.10)
+	#self.bnode.setCcdMotionThreshold(1e-7)
+	#self.bnode.setCcdSweptSphereRadius(0.50)
 
         self.bnode.notifyCollisions(True)
         self.bnode.setIntoCollideMask(BitMask32.bit(1))
@@ -154,6 +153,9 @@ class Flame(Entity):
 
 	if self.livetime > Flame.maxlife:
 	    self.remove = True
+
+    def hitby(self, index, projectile):
+        return
 
     def destroy(self):
         self.remove = True

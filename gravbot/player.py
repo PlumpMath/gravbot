@@ -131,3 +131,6 @@ class Player(Entity):
     def crouch(self, switch):
         self.crouchToggle = switch
 
+
+    def hitby(self, index, projectile):
+        return

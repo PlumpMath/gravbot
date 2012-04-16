@@ -18,7 +18,7 @@ import utilities
 from random import randint
 from items import Flame
 
-worldsize = Point2(2,3)
+worldsize = Point2(30,30)
 
 class World():
     CULLDISTANCE = 10
@@ -28,6 +28,9 @@ class World():
         self.size = size
         self.perlin = PerlinNoise2()
 
+	#utilities.app.accept('bullet-contact-added', self.onContactAdded) 
+	#utilities.app.accept('bullet-contact-destroyed', self.onContactDestroyed) 
+
         self.player = Player(self)
         self.player.initialise()
 
@@ -35,26 +38,26 @@ class World():
         self.bgs = list()
         self.makeChunk(Point2(0,0)) 
 
+	self.mps = list()
+
 	self.culls = 0
 
     def update(self, timer):
         dt = globalClock.getDt()
         self.bw.doPhysics(dt, 10, 1.0/180.0)
-
-	for entity in self.entities:
-	    if entity.remove == True:
-	        entity.destroy()
-		self.entities.remove(entity)
-
+        
         for entity in self.entities:
 	    if isinstance(entity, Flame):
 	        ctest = self.bw.contactTest(entity.bnode)
 		if ctest.getNumContacts() > 0:
 	            entity.remove = True
-		    for contact in ctest.getContacts():
-			mp =  contact.getManifoldPoint()
-			contact.getNode0().getPythonTag("entity").hitby("flame", mp.getIndex0())
+	 	    mp =  ctest.getContacts()[0].getManifoldPoint()
+		    ctest.getContacts()[0].getNode0().getPythonTag("entity").hitby("flame", mp.getIndex0())
 
+	for entity in self.entities:
+	    if entity.remove == True:
+	        entity.destroy()
+		self.entities.remove(entity)
 
         self.player.update(dt)
 
@@ -75,8 +78,8 @@ class World():
                 if self.perlin.noise(i,j) > 0:
                     self.pt[i].append(1)
                 else:
-                    self.pt[i].append(1) #TESTING  
-                    #self.pt[i].append(0) #TESTING  
+                    #self.pt[i].append(1) #TESTING  
+                    self.pt[i].append(0) #TESTING  
 
 	self.wgs = list()
 	self.searchForWalls(self.pt)
@@ -122,6 +125,21 @@ class World():
     def addEntity(self, entity):
         self.entities.append(entity)
 
+    def onContactAdded(self, node1, node2):
+        e1 = node1.getPythonTag("entity")
+        e2 = node2.getPythonTag("entity")
+
+	if isinstance(e1, Flame):
+	    e1.remove = True
+	if isinstance(e2, Flame):
+	    e2.remove = True
+
+
+        print "contact"
+	
+    def onContactDestroyed(self, node1, node2):
+        return
+
 def distance(p1, p2):
     return hypot(p1.x-p2.x, p1.y - p2.y) 
 
@@ -137,7 +155,6 @@ class Wall(Entity):
 
 	self.obj = utilities.loadObject(tile, depth=0, pos = Point2(posX, posY))
 	self.obj.reparentTo(group.np)
-	self.obj.hide()
 
 	self.shape = BulletBoxShape(Vec3(0.5, 1.0, 0.5))
 	self.group = group
@@ -147,9 +164,10 @@ class Wall(Entity):
         self.obj.remove()
 
     def rebuild(self, diffX, diffY):
-        self.group.bnode.addShape(self.shape, TransformState.makePos(Point3(self.x - diffX, 0, self.y - diffY)))
 	self.x -= diffX
 	self.y -= diffY
+        self.group.bnode.addShape(self.shape, TransformState.makePos(Point3(self.x, 0, self.y)))
+	self.obj.setPos(self.x, 0, self.y)
 
     def __repr__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
@@ -170,6 +188,8 @@ class WallGroup(Entity):
         self.minY = wallpoints[0].y
         self.maxX = wallpoints[0].x
         self.maxY = wallpoints[0].y
+
+	self.world = world
 
         for point in wallpoints:
 	    self.minX = min(point.x, self.minX)
@@ -208,14 +228,27 @@ class WallGroup(Entity):
     def update(self, timer):
 
 	for index in self.hitlist:
+	    if len(self.hitlist) > 1:
+	        print self.hitlist
 	    # remove all the shapes
 	    for shape in self.bnode.getShapes():
 	        self.bnode.removeShape(shape)
 	    
 	    # remove the heinous wall
-	    self.walls[index].destroy()
+	    try: 
+	        self.walls[index].destroy()
+	    except:
+	        print "tried to destroy non-existent wall"
+	        print self.wallpoints
+	        print index
+		print self.walls
             self.walls.pop(index)
 	    self.wallpoints.pop(index)
+
+	    if len(self.walls) == 0:
+	        self.world.bw.removeRigidBody(self.bnode)
+	        self.remove = True
+	        return
 
             self.minX = self.wallpoints[0].x
             self.minY = self.wallpoints[0].y
@@ -233,22 +266,19 @@ class WallGroup(Entity):
 
 	    # The amount we need to shift every shape to compensate
 	    # for moving our centre of gravity
-
 	    diff = newcog - self.cog
 	    self.cog = newcog
-	    print diff
 	    
 	    # add back in all the walls
 	    for wall in self.walls:
-	        #print str(wall.x) + " " + str(wall.y)
 	        wall.rebuild(diff.x, diff.y)
-	    cp = self.np.getPos()
-	    print cp
 
 	    self.np.setPos(self.np, diff.x, 0, diff.y)	
-	    print self.np.getPos() 
 
 	self.hitlist.clear()    
+
+    def destroy(self):
+        return
 
     def hitby(self, projectile, index):
         self.hitlist[index] = projectile
