@@ -44,7 +44,7 @@ class World():
 
     def update(self, timer):
         dt = globalClock.getDt()
-        self.bw.doPhysics(dt, 10, 1.0/180.0)
+        self.bw.doPhysics(dt, 5, 1.0/180.0)
         
         for entity in self.entities:
 	    if isinstance(entity, Flame):
@@ -52,7 +52,7 @@ class World():
 		if ctest.getNumContacts() > 0:
 	            entity.remove = True
 	 	    mp =  ctest.getContacts()[0].getManifoldPoint()
-		    ctest.getContacts()[0].getNode0().getPythonTag("entity").hitby("flame", mp.getIndex0())
+		    ctest.getContacts()[0].getNode0().getPythonTag("entity").hitby(Flame, mp.getIndex0())
 
 	for entity in self.entities:
 	    if entity.remove == True:
@@ -162,6 +162,14 @@ class Wall(Entity):
 
     def destroy(self):
         self.obj.remove()
+    
+    def hitby(self, projectile):
+        self.health -= projectile.damage 
+        if (self.health < 0):
+            return True
+        greyscale  = 0.3 + (0.01 * self.health)
+        self.obj.setColor(greyscale, greyscale,greyscale,greyscale)
+        return False
 
     def rebuild(self, diffX, diffY):
 	self.x -= diffX
@@ -182,21 +190,9 @@ class WallGroup(Entity):
 
 	self.mass = len(wallpoints)*WallGroup.wallmass
 	self.wallpoints = wallpoints
-
-	# find approximate centre 
-        self.minX = wallpoints[0].x
-        self.minY = wallpoints[0].y
-        self.maxX = wallpoints[0].x
-        self.maxY = wallpoints[0].y
-
 	self.world = world
 
-        for point in wallpoints:
-	    self.minX = min(point.x, self.minX)
-	    self.minY = min(point.y, self.minY)
-	    self.maxX = max(point.x, self.maxX)
-	    self.maxY = max(point.y, self.maxY)
-
+	self.minMax()
 	self.cog = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
 
 	self.walls = list()
@@ -209,8 +205,7 @@ class WallGroup(Entity):
 
 	self.bnode.setPythonTag("entity", self)
 
-
-	self.inScope = False
+	self.inScope = False # culling
 
         for p in wallpoints:
             tile = "wall"
@@ -221,61 +216,62 @@ class WallGroup(Entity):
 	    self.walls.append(Wall(world, p.x-self.cog.x, p.y-self.cog.y, self, tile))
 
 	world.bw.attachRigidBody(self.bnode)
-	self.bnode.notifyCollisions(True)
 
 	self.hitlist = dict()
 
     def update(self, timer):
 
 	for index in self.hitlist:
-	    if len(self.hitlist) > 1:
-	        print self.hitlist
-	    # remove all the shapes
-	    for shape in self.bnode.getShapes():
-	        self.bnode.removeShape(shape)
-	    
-	    # remove the heinous wall
-	    try: 
-	        self.walls[index].destroy()
-	    except:
-	        print "tried to destroy non-existent wall"
-	        print self.wallpoints
-	        print index
-		print self.walls
-            self.walls.pop(index)
-	    self.wallpoints.pop(index)
-
-	    if len(self.walls) == 0:
-	        self.world.bw.removeRigidBody(self.bnode)
-	        self.remove = True
-	        return
-
-            self.minX = self.wallpoints[0].x
-            self.minY = self.wallpoints[0].y
-            self.maxX = self.wallpoints[0].x
-            self.maxY = self.wallpoints[0].y
-
-            # refresh our centre of gravity
-            for point in self.wallpoints:
-	        self.minX = min(point.x, self.minX)
-	        self.minY = min(point.y, self.minY)
-	        self.maxX = max(point.x, self.maxX)
-	        self.maxY = max(point.y, self.maxY)
-
-	    newcog = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
-
-	    # The amount we need to shift every shape to compensate
-	    # for moving our centre of gravity
-	    diff = newcog - self.cog
-	    self.cog = newcog
-	    
-	    # add back in all the walls
-	    for wall in self.walls:
-	        wall.rebuild(diff.x, diff.y)
-
-	    self.np.setPos(self.np, diff.x, 0, diff.y)	
+            # returns true if the wall is destroyed by the hit
+            if self.walls[index].hitby(self.hitlist[index]):
+                self.rebuild(index)
 
 	self.hitlist.clear()    
+
+    # remove an element and rebuild
+    def rebuild(self, index):
+        for shape in self.bnode.getShapes():
+            self.bnode.removeShape(shape)
+
+        # remove the heinous wall
+        self.walls[index].destroy()
+        self.walls.pop(index)
+        self.wallpoints.pop(index)
+
+        if len(self.walls) == 0:
+            self.world.bw.removeRigidBody(self.bnode)
+            self.remove = True
+            return
+
+        self.minMax()
+
+        newcog = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
+
+        # The amount we need to shift every shape to compensate
+        # for moving our centre of gravity
+        diff = newcog - self.cog
+        self.cog = newcog
+
+        # add back in all the walls
+        for wall in self.walls:
+            wall.rebuild(diff.x, diff.y)
+
+        self.np.setPos(self.np, diff.x, 0, diff.y)
+
+
+
+    def minMax(self):
+        self.minX = self.wallpoints[0].x
+        self.minY = self.wallpoints[0].y
+        self.maxX = self.wallpoints[0].x
+        self.maxY = self.wallpoints[0].y
+
+        for point in self.wallpoints:
+            self.minX = min(point.x, self.minX)
+            self.minY = min(point.y, self.minY)
+            self.maxX = max(point.x, self.maxX)
+            self.maxY = max(point.y, self.maxY)
+
 
     def destroy(self):
         return

@@ -45,7 +45,7 @@ class Blowtorch(Item):
 
     def activate(self):
         #add a flame projectile
-        self.world.addEntity(Flame(self.world, self.player.obj.getPos(utilities.app.render), self.obj.getHpr()))
+        self.world.addEntity(Flame(self.world, self.player.obj.getPos(utilities.app.render), self.player.obj.getHpr()))
         return True
 
     def update(self, timer):
@@ -61,6 +61,7 @@ class Flame(Entity):
     playerWidth = 3
     speed = 30 
     maxlife = 10
+    damage = 30
 
     def __init__(self, world, pos, hpr):
         super(Flame, self).__init__()
