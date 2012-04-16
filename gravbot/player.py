@@ -8,7 +8,7 @@ from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode
 
 class Player(Entity):
 
-    walkspeed = 0.025
+    walkspeed = 5
     damping = 0.9
     topspeed = 15
 
@@ -34,7 +34,7 @@ class Player(Entity):
 
         self.shape = BulletBoxShape(Vec3(0.3, 1.0, 0.49))
         self.bnode = BulletRigidBodyNode('Box')
-        self.bnode.setMass(0.001)
+        self.bnode.setMass(0.1)
         self.bnode.setAngularVelocity(Vec3(0))
         self.bnode.setAngularFactor(Vec3(0))
         self.bnode.addShape(self.shape)
