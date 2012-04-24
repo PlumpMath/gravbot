@@ -18,20 +18,20 @@ def _complain_about_usage_and_die():
     _print_usage(sys.stderr)
     sys.exit(1)
 
-def _wrap_with_profiling(entry_point):
+def _wrap_with_profiling(entry_point, arg):
     """
     run the given argumentless function entry_point using the python profiler
 
     trap any SystemExits and KeyboardInterrupts so we can
     still spam the profing results to stdout
     """
-    def wrapped_entry_point():
+    def wrapped_entry_point(arg):
         import pstats
         import cProfile
         p = cProfile.Profile()
         def safety_net(entry_point):
             try:
-                entry_point()
+                entry_point(arg)
             except SystemExit:
                 pass
             except KeyboardInterrupt:
@@ -60,7 +60,7 @@ def main():
         apparg  =  "test"
 
     if options['--profile']:
-        entry_point = _wrap_with_profiling(entry_point)
+        entry_point = _wrap_with_profiling(entry_point, "")
 
     entry_point(apparg)
     sys.exit(0)

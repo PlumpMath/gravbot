@@ -37,3 +37,11 @@ def loadObject(tex = None, pos = Point2(0,0), depth = SPRITE_POS, transparency =
         obj.setTexture(tex, 1)                           #Set the texture
 
     return obj
+
+class Pix():
+    def __init__(self, x, y):
+        self.x = int(x)
+        self.y = int(y)
+    def __repr__(self):
+        return "(" + str(self.x) + "," + str(self.y) + ")"
+

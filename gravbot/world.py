@@ -17,8 +17,10 @@ from math import hypot
 import utilities
 from random import randint
 from items import Flame
+from copy import copy
+from chunks import Wall, ChunkGroup
 
-worldsize = Point2(30,30)
+worldsize = Point2(3,3)
 
 class World():
     CULLDISTANCE = 10
@@ -78,15 +80,14 @@ class World():
                 if self.perlin.noise(i,j) > 0:
                     self.pt[i].append(1)
                 else:
-                    #self.pt[i].append(1) #TESTING  
-                    self.pt[i].append(0) #TESTING  
+                    self.pt[i].append(1) #TESTING  
+                    #self.pt[i].append(0) #TESTING  
 
 	self.wgs = list()
 	self.searchForWalls(self.pt)
-	self.testgroups = list()
 
 	for wg in self.wgs:
-	  self.entities.append(WallGroup(self, wg))
+	  self.entities.append(ChunkGroup(self, wg, 1,1))
 	
     def searchForWalls(self, pt):
         for i in range(0, int(worldsize.x)):
@@ -94,34 +95,25 @@ class World():
 	        if self.pt[i][j] == 1:
 		  points = list()
 		  self.wgs.append(points)
-		  self.makeWallGroup(self.pt, Pix(i,j), points)
+		  self.makeWallGroup(self.pt, utilities.Pix(i,j), points)
 
     def makeWallGroup(self, pt, point, points):
         i = point.x
 	j = point.y
 	if self.pt[i][j] == 1:
 	    self.pt[i][j] = 0
-	    points.append(Pix(i,j))
+	    points.append(utilities.Pix(i,j))
 	else: 
 	    return    
         if i > 0:
-	    self.makeWallGroup(self.pt, Pix(i-1,j), points)
+	    self.makeWallGroup(self.pt, utilities.Pix(i-1,j), points)
         if i < worldsize.x-1:  
-	    self.makeWallGroup(self.pt, Pix(i+1,j), points)
+	    self.makeWallGroup(self.pt, utilities.Pix(i+1,j), points)
  	if j < worldsize.y-1:
-	    self.makeWallGroup(self.pt, Pix(i,j+1), points)
+	    self.makeWallGroup(self.pt, utilities.Pix(i,j+1), points)
 	if j > 0:
-	    self.makeWallGroup(self.pt, Pix(i,j-1), points)
+	    self.makeWallGroup(self.pt, utilities.Pix(i,j-1), points)
 
-    def printpt(self):
-	astr = ""
-        for i in range(0, int(worldsize.x)):
-	    tstr = ""
-            for j in range(0, int(worldsize.y)):
-	        tstr = tstr +  str(self.pt[j][i]) + " "
-	    astr = tstr + '\n' + astr
-	print astr    
-    
     def addEntity(self, entity):
         self.entities.append(entity)
 
@@ -143,146 +135,11 @@ class World():
 def distance(p1, p2):
     return hypot(p1.x-p2.x, p1.y - p2.y) 
 
-class Wall(Entity):
-    def __init__(self, world, posX, posY, group, tile):
-        super(Wall, self).__init__()
-
-	self.x = posX
-	self.y = posY
-
-        self.health = 100
-	self.world = world
-
-	self.obj = utilities.loadObject(tile, depth=0, pos = Point2(posX, posY))
-	self.obj.reparentTo(group.np)
-
-	self.shape = BulletBoxShape(Vec3(0.5, 1.0, 0.5))
-	self.group = group
-	group.bnode.addShape(self.shape, TransformState.makePos(Point3(posX, 0, posY)))
-
-    def destroy(self):
-        self.obj.remove()
-    
-    def hitby(self, projectile):
-        self.health -= projectile.damage 
-        if (self.health < 0):
-            return True
-        greyscale  = 0.3 + (0.01 * self.health)
-        self.obj.setColor(greyscale, greyscale,greyscale,greyscale)
-        return False
-
-    def rebuild(self, diffX, diffY):
-	self.x -= diffX
-	self.y -= diffY
-        self.group.bnode.addShape(self.shape, TransformState.makePos(Point3(self.x, 0, self.y)))
-	self.obj.setPos(self.x, 0, self.y)
-
-    def __repr__(self):
-        return "(" + str(self.x) + ", " + str(self.y) + ")"
-
-
-# Probably want to convert the list of points to a graph to support
-# cutting an object into two pieces
-class WallGroup(Entity):
-    wallmass = 500.0
-    def __init__(self, world, wallpoints):
-        super(WallGroup, self).__init__()
-
-	self.mass = len(wallpoints)*WallGroup.wallmass
-	self.wallpoints = wallpoints
-	self.world = world
-
-	self.minMax()
-	self.cog = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
-
-	self.walls = list()
-        self.bnode = BulletRigidBodyNode()
-
-        self.bnode.setMass(len(wallpoints))
-	self.bnode.setAngularFactor(Vec3(0,1,0))
-        self.np = utilities.app.render.attachNewNode(self.bnode)
-        self.np.setPos(self.cog.x,20,self.cog.y)
-
-	self.bnode.setPythonTag("entity", self)
-
-	self.inScope = False # culling
-
-        for p in wallpoints:
-            tile = "wall"
-	    if randint(0, 10) < 8:
-	        tile = "floor1"
-	    else:
-	        tile = "floor2"
-	    self.walls.append(Wall(world, p.x-self.cog.x, p.y-self.cog.y, self, tile))
-
-	world.bw.attachRigidBody(self.bnode)
-
-	self.hitlist = dict()
-
-    def update(self, timer):
-
-	for index in self.hitlist:
-            # returns true if the wall is destroyed by the hit
-            if self.walls[index].hitby(self.hitlist[index]):
-                self.rebuild(index)
-
-	self.hitlist.clear()    
-
-    # remove an element and rebuild
-    def rebuild(self, index):
-        for shape in self.bnode.getShapes():
-            self.bnode.removeShape(shape)
-
-        # remove the heinous wall
-        self.walls[index].destroy()
-        self.walls.pop(index)
-        self.wallpoints.pop(index)
-
-        if len(self.walls) == 0:
-            self.world.bw.removeRigidBody(self.bnode)
-            self.remove = True
-            return
-
-        self.minMax()
-
-        newcog = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
-
-        # The amount we need to shift every shape to compensate
-        # for moving our centre of gravity
-        diff = newcog - self.cog
-        self.cog = newcog
-
-        # add back in all the walls
-        for wall in self.walls:
-            wall.rebuild(diff.x, diff.y)
-
-        self.np.setPos(self.np, diff.x, 0, diff.y)
-
-
-
-    def minMax(self):
-        self.minX = self.wallpoints[0].x
-        self.minY = self.wallpoints[0].y
-        self.maxX = self.wallpoints[0].x
-        self.maxY = self.wallpoints[0].y
-
-        for point in self.wallpoints:
-            self.minX = min(point.x, self.minX)
-            self.minY = min(point.y, self.minY)
-            self.maxX = max(point.x, self.maxX)
-            self.maxY = max(point.y, self.maxY)
-
-
-    def destroy(self):
-        return
-
-    def hitby(self, projectile, index):
-        self.hitlist[index] = projectile
-
-class Pix():
-    def __init__(self, x, y):
-        self.x = int(x)
-        self.y = int(y)
-    def __repr__(self):
-        return "(" + str(self.x) + "," + str(self.y) + ")"
-    
+def printMatrix(matrix):
+    astr = ""
+    for i in range(0, len(matrix)):
+        tstr = ""
+        for j in range(0, len(matrix[0])):
+            tstr = tstr +  str(matrix[i][j]) + " "
+        astr = tstr + '\n' + astr
+    print astr    
