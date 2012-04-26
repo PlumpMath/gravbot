@@ -18,9 +18,9 @@ import utilities
 from random import randint
 from items import Flame
 from copy import copy
-from chunks import Wall, ChunkGroup
+from chunks import Block, Chunk
 
-worldsize = Point2(3,3)
+worldsize = Point2(200,200)
 
 class World():
     CULLDISTANCE = 10
@@ -38,7 +38,7 @@ class World():
 
         self.entities = list()
         self.bgs = list()
-        self.makeChunk(Point2(0,0)) 
+        self.makeChunk(Point2(0,0), Point2(3.0, 3.0)) 
 
 	self.mps = list()
 
@@ -66,53 +66,28 @@ class World():
         for entity in self.entities:
             entity.update(dt)
 
-    # Generate a $worldsize chunk of data with bottom left corner at $pos
-    def makeChunk(self, pos):
-        # store enemies, bits of terrain and projectiles in entities
-        # so we can do some collision detection
+    def makeChunk(self, pos, size):
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))
 
-        self.pt = list()
+	blocks = list()
+        #world, pos, tile, edges
+	blocks.append(Block(self, Point2(-0.5, -0.5), "floor1", list()))
+	blocks.append(Block(self, Point2(0.5, -0.5), "floor1", list()))
+	blocks.append(Block(self, Point2(1.5, -0.5), "floor1", list()))
+	blocks.append(Block(self, Point2(2.5, -0.5), "floor1", list()))
 
-        for i in range(0, int(worldsize.x)):
-            self.pt.append(list())
-            for j in range(0, int(worldsize.y)):
-                if self.perlin.noise(i,j) > 0:
-                    self.pt[i].append(1)
-                else:
-                    self.pt[i].append(1) #TESTING  
-                    #self.pt[i].append(0) #TESTING  
+	blocks[0].edges.append(blocks[1])
+	blocks[1].edges.append(blocks[0])
 
-	self.wgs = list()
-	self.searchForWalls(self.pt)
+	blocks[2].edges.append(blocks[1])
+	blocks[1].edges.append(blocks[2])
 
-	for wg in self.wgs:
-	  self.entities.append(ChunkGroup(self, wg, 1,1))
-	
-    def searchForWalls(self, pt):
-        for i in range(0, int(worldsize.x)):
-            for j in range(0, int(worldsize.y)):
-	        if self.pt[i][j] == 1:
-		  points = list()
-		  self.wgs.append(points)
-		  self.makeWallGroup(self.pt, utilities.Pix(i,j), points)
+	blocks[2].edges.append(blocks[3])
+	blocks[3].edges.append(blocks[2])
 
-    def makeWallGroup(self, pt, point, points):
-        i = point.x
-	j = point.y
-	if self.pt[i][j] == 1:
-	    self.pt[i][j] = 0
-	    points.append(utilities.Pix(i,j))
-	else: 
-	    return    
-        if i > 0:
-	    self.makeWallGroup(self.pt, utilities.Pix(i-1,j), points)
-        if i < worldsize.x-1:  
-	    self.makeWallGroup(self.pt, utilities.Pix(i+1,j), points)
- 	if j < worldsize.y-1:
-	    self.makeWallGroup(self.pt, utilities.Pix(i,j+1), points)
-	if j > 0:
-	    self.makeWallGroup(self.pt, utilities.Pix(i,j-1), points)
+	chunk = Chunk(self, blocks, Point2(2,2))
+	self.addEntity(chunk)
+
 
     def addEntity(self, entity):
         self.entities.append(entity)
