@@ -3,7 +3,7 @@
 # simulate the current, previous and next chunks
 
 from entity import Entity
-from panda3d.core import Point2, Point3, Vec3
+from panda3d.core import Point2, Point3, Vec3, NodePath
 from panda3d.core import TransformState
 from player import Player
 from panda3d.bullet import BulletWorld
@@ -56,7 +56,7 @@ class Block(Entity):
 
 class Chunk(Entity):
     chunkmass = 5.0
-    def __init__(self, world, blocks, pos, hpr=Point3(0,0,0)):
+    def __init__(self, world, blocks, pos, hpr=Point3(0,0,0), diff = Vec3(0,0,0)):
         super(Chunk, self).__init__()
 
 	self.mass = len(blocks)*Chunk.chunkmass
@@ -68,8 +68,9 @@ class Chunk(Entity):
         self.bnode.setMass(self.mass)
 	self.bnode.setAngularFactor(Vec3(0,1,0))
         self.np = utilities.app.render.attachNewNode(self.bnode)
-	self.np.setHpr(hpr)
         self.np.setPos(pos.x,20,pos.y)
+	self.np.setHpr(hpr)
+	self.np.setPos(self.np, diff)
 
 	self.bnode.setPythonTag("entity", self)
 
@@ -117,10 +118,12 @@ class Chunk(Entity):
 	for result in results:
 	    print result
 	    self.minMax(result)
-	    diff = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
+	    #diff = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
+	    diff = Vec3((self.minX+self.maxX) / 2.0, 0, (self.minY+self.maxY) / 2.0)
 	    p = self.np.getPos()
-	    pos = Point2(p.x + diff.x, p.z + diff.y)
-	    self.world.entities.append(Chunk(self.world, result, pos, self.np.getHpr()))
+	    pos = Point2(p.x, p.z)
+	    h = self.np.getHpr()
+	    self.world.entities.append(Chunk(self.world, result, pos, h, diff))
 
         self.destroy()
 	self.remove = True
