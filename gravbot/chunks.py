@@ -128,7 +128,6 @@ class Chunk(Entity):
 	        results.append(chunk)
 	
 	for result in results:
-	    print result
 	    self.minMax(result)
 	    #diff = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
 	    diff = Vec3((self.minX+self.maxX) / 2.0, 0, (self.minY+self.maxY) / 2.0)

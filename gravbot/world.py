@@ -19,6 +19,7 @@ from random import randint
 from items import Flame
 from copy import copy
 from chunks import Block, Chunk
+from genworld import genBox, genFillBox
 
 worldsize = Point2(200,200)
 
@@ -69,26 +70,9 @@ class World():
     def makeChunk(self, pos, size):
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))
 
-	blocks = list()
-        #world, pos, tile, edges
-	blocks.append(Block(self, Point2(-0.5, -0.5), "floor1", list()))
-	blocks.append(Block(self, Point2(0.5, -0.5), "floor1", list()))
-	blocks.append(Block(self, Point2(1.5, -0.5), "floor1", list()))
-	blocks.append(Block(self, Point2(2.5, -0.5), "floor1", list()))
-
-	blocks[0].edges.append(blocks[1])
-	blocks[1].edges.append(blocks[0])
-
-	blocks[2].edges.append(blocks[1])
-	blocks[1].edges.append(blocks[2])
-
-	blocks[2].edges.append(blocks[3])
-	blocks[3].edges.append(blocks[2])
-
-	chunk = Chunk(self, blocks, Point2(2,2))
-	self.addEntity(chunk)
-
-
+        genBox(self, Point2(2,2), 5.0, 4.0, 'metalwalls')
+        #genFillBox(self, Point2(2,2), 5.0, 4.0, 'metalwalls')
+        
     def addEntity(self, entity):
         self.entities.append(entity)
 
