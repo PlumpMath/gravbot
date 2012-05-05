@@ -14,6 +14,7 @@ import utilities
 from items import Flame
 from copy import copy
 from utilities import Pix
+from math import hypot
 
 def compareBlock(block1, block2):
     x = block1.pos.x - block2.pos.x
@@ -67,7 +68,7 @@ class Block(Entity):
 
 class Chunk(Entity):
     chunkmass = 5.0
-    def __init__(self, world, blocks, pos, hpr=Point3(0,0,0), diff = Vec3(0,0,0)):
+    def __init__(self, world, blocks, pos, hpr=Point3(0,0,0), diff = Vec3(0,0,0), angVel = Vec3(0,0,0), linVel = Vec3(0,0,0)):
         super(Chunk, self).__init__()
 
 	self.mass = len(blocks)*Chunk.chunkmass
@@ -78,6 +79,10 @@ class Chunk(Entity):
 
         self.bnode.setMass(self.mass)
 	self.bnode.setAngularFactor(Vec3(0,1,0))
+	self.bnode.setLinearSleepThreshold(20)
+	self.bnode.setAngularSleepThreshold(20)
+	self.bnode.setAngularVelocity(angVel)
+	self.bnode.setLinearVelocity(linVel)
         self.np = utilities.app.render.attachNewNode(self.bnode)
         self.np.setPos(pos.x,20,pos.y)
 	self.np.setHpr(hpr)
@@ -104,7 +109,24 @@ class Chunk(Entity):
                 self.rebuild(index)
 	self.hitlist.clear()    
 
+	if self.playerDistance() > 40.0:
+	    self.bnode.setAngularSleepThreshold(1)
+	    self.bnode.setLinearSleepThreshold(1)
+	else:    
+	    self.bnode.setAngularSleepThreshold(0)
+	    self.bnode.setLinearSleepThreshold(0)
+	
+
+    def playerDistance(self):
+        sp = self.np.getPos()
+	pp = self.world.player.node.getPos()
+
+	distance = hypot(sp.x - pp.x, sp.z - pp.z)
+	return distance
+        
     # remove an element and rebuild
+    # TODO add another method for removing multiple
+    # blocks in a single go
     def rebuild(self, index):
 	deadblock = self.blocks[index]
 	out = list()
@@ -134,7 +156,7 @@ class Chunk(Entity):
 	    p = self.np.getPos()
 	    pos = Point2(p.x, p.z)
 	    h = self.np.getHpr()
-	    self.world.entities.append(Chunk(self.world, result, pos, h, diff))
+	    self.world.entities.append(Chunk(self.world, result, pos, h, diff, self.bnode.getAngularVelocity(), self.bnode.getLinearVelocity()))
 
         self.destroy()
 	self.remove = True

@@ -1,7 +1,7 @@
 from entity import Entity
 from panda3d.core import Point2, Point3, NodePath, BoundingBox, Vec3, BitMask32
 from items import Blowtorch, LightLaser, Grenade
-from math import atan2, degrees, sin, cos
+from math import atan2, degrees, sin
 import utilities
 
 from panda3d.bullet import BulletBoxShape, BulletRigidBodyNode

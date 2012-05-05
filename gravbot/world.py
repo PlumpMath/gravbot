@@ -21,6 +21,9 @@ from copy import copy
 from chunks import Block, Chunk
 from genworld import genBox, genFillBox
 
+from ai.path import createCollisionMap
+
+
 worldsize = Point2(200,200)
 
 class World():
@@ -31,8 +34,8 @@ class World():
         self.size = size
         self.perlin = PerlinNoise2()
 
-	#utilities.app.accept('bullet-contact-added', self.onContactAdded) 
-	#utilities.app.accept('bullet-contact-destroyed', self.onContactDestroyed) 
+        #utilities.app.accept('bullet-contact-added', self.onContactAdded) 
+        #utilities.app.accept('bullet-contact-destroyed', self.onContactDestroyed) 
 
         self.player = Player(self)
         self.player.initialise()
@@ -41,26 +44,27 @@ class World():
         self.bgs = list()
         self.makeChunk(Point2(0,0), Point2(3.0, 3.0)) 
 
-	self.mps = list()
+        #testing
+        cmap = createCollisionMap(self.entities)
 
-	self.culls = 0
+        self.mps = list()
 
     def update(self, timer):
         dt = globalClock.getDt()
         self.bw.doPhysics(dt, 5, 1.0/180.0)
         
         for entity in self.entities:
-	    if isinstance(entity, Flame):
-	        ctest = self.bw.contactTest(entity.bnode)
-		if ctest.getNumContacts() > 0:
-	            entity.remove = True
-	 	    mp =  ctest.getContacts()[0].getManifoldPoint()
-		    ctest.getContacts()[0].getNode0().getPythonTag("entity").hitby(Flame, mp.getIndex0())
+            if isinstance(entity, Flame):
+                ctest = self.bw.contactTest(entity.bnode)
+                if ctest.getNumContacts() > 0:
+                    entity.remove = True
+                    mp =  ctest.getContacts()[0].getManifoldPoint()
+                    ctest.getContacts()[0].getNode0().getPythonTag("entity").hitby(Flame, mp.getIndex0())
 
-	for entity in self.entities:
-	    if entity.remove == True:
-	        entity.destroy()
-		self.entities.remove(entity)
+        for entity in self.entities:
+            if entity.remove == True:
+                entity.destroy()
+                self.entities.remove(entity)
 
         self.player.update(dt)
 
@@ -70,9 +74,11 @@ class World():
     def makeChunk(self, pos, size):
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))
 
-        genBox(self, Point2(2,2), 5.0, 4.0, 'metalwalls')
-        #genFillBox(self, Point2(2,2), 5.0, 4.0, 'metalwalls')
-        
+        genFillBox(self, Point2(2,2), 5, 5, 'metalwalls')
+        genBox(self, Point2(10,5), 5, 5, 'metalwalls')
+
+
+
     def addEntity(self, entity):
         self.entities.append(entity)
 
@@ -80,14 +86,14 @@ class World():
         e1 = node1.getPythonTag("entity")
         e2 = node2.getPythonTag("entity")
 
-	if isinstance(e1, Flame):
-	    e1.remove = True
-	if isinstance(e2, Flame):
-	    e2.remove = True
+        if isinstance(e1, Flame):
+            e1.remove = True
+        if isinstance(e2, Flame):
+            e2.remove = True
 
 
         print "contact"
-	
+    
     def onContactDestroyed(self, node1, node2):
         return
 
