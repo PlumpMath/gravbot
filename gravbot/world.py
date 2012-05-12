@@ -21,7 +21,8 @@ from copy import copy
 from chunks import Block, Chunk
 from genworld import genBox, genFillBox
 
-from ai.path import createCollisionMap
+from path import buildMap, printMap
+#from ai.path import createCollisionMap
 
 
 worldsize = Point2(200,200)
@@ -44,8 +45,9 @@ class World():
         self.bgs = list()
         self.makeChunk(Point2(0,0), Point2(3.0, 3.0)) 
 
-        #testing
-        cmap = createCollisionMap(self.entities)
+        cmap = buildMap(self.entities)
+        print cmap
+        printMap(cmap)
 
         self.mps = list()
 
@@ -67,6 +69,9 @@ class World():
                 self.entities.remove(entity)
 
         self.player.update(dt)
+        cmap = buildMap(self.entities)
+        #cmap = buildMap(self.entities[0:1], debug=True)
+        printMap (cmap)
 
         for entity in self.entities:
             entity.update(dt)
@@ -74,8 +79,9 @@ class World():
     def makeChunk(self, pos, size):
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))
 
-        genFillBox(self, Point2(2,2), 5, 5, 'metalwalls')
-        genBox(self, Point2(10,5), 5, 5, 'metalwalls')
+        genFillBox(self, Point2(5,5), 5, 5, 'metalwalls')
+        #genBox(self, Point2(10,5), 2, 1, 'metalwalls')
+        #self.entities[0].bnode.applyTorque(Vec3(0,50,10))
 
 
 

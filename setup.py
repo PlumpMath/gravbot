@@ -21,7 +21,7 @@ args={}
 # you may need to adjust the paths to match your systems
 libs=['libpanda']
 args['library_dirs']=['/usr/lib64/panda3d']
-args['include_dirs']=['/usr/include/panda3d']
+args['include_dirs']=['/usr/include/panda3d', '/usr/include/bullet']
 args['libraries']=['p3framework', 'panda', 'pandafx', 'pandaexpress', 'p3dtoolconfig', 'p3dtool', 'p3pystub', 'p3direct']
 
 
