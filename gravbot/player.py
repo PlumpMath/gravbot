@@ -28,9 +28,8 @@ class Player(Entity):
 
         self.depth = self.obj.getPos().y
 
-        self.location = Point2(-10,0)
+        self.location = Point2(10,0)
         self.velocity = Vec3(0)
-        self.pt = 0.0
 
         self.shape = BulletBoxShape(Vec3(0.3, 1.0, 0.49))
         self.bnode = BulletRigidBodyNode('Box')
@@ -112,10 +111,9 @@ class Player(Entity):
         # but keep the camera steady vertically
         utilities.app.camera.setPos(self.node.getPos().x, 0, self.node.getPos().z)
 
-	self.obj.setHpr(0, 0, -1 * degrees(angle))
-
-	self.location.x = self.node.getPos().x
-	self.location.y = self.node.getPos().z
+        self.obj.setHpr(0, 0, -1 * degrees(angle))
+        self.location.x = self.node.getPos().x
+        self.location.y = self.node.getPos().z
 
     def moveLeft(self, switch):
         self.leftMove = switch 

@@ -22,6 +22,7 @@ from chunks import Block, Chunk
 from genworld import genBox, genFillBox
 
 from path import buildMap, printMap
+from enemies import Catcher, Enemy
 #from ai.path import createCollisionMap
 
 
@@ -45,11 +46,11 @@ class World():
         self.bgs = list()
         self.makeChunk(Point2(0,0), Point2(3.0, 3.0)) 
 
-        cmap = buildMap(self.entities)
-        print cmap
-        printMap(cmap)
+        self.cmap = buildMap(self.entities, self.player.location)
 
         self.mps = list()
+
+        self.entities.append(Catcher(Point2(20, 20), self.player, self.cmap, self))
 
     def update(self, timer):
         dt = globalClock.getDt()
@@ -69,9 +70,8 @@ class World():
                 self.entities.remove(entity)
 
         self.player.update(dt)
-        cmap = buildMap(self.entities)
+        self.cmap = buildMap(self.entities, self.player.location)
         #cmap = buildMap(self.entities[0:1], debug=True)
-        printMap (cmap)
 
         for entity in self.entities:
             entity.update(dt)
@@ -82,8 +82,6 @@ class World():
         genFillBox(self, Point2(5,5), 5, 5, 'metalwalls')
         #genBox(self, Point2(10,5), 2, 1, 'metalwalls')
         #self.entities[0].bnode.applyTorque(Vec3(0,50,10))
-
-
 
     def addEntity(self, entity):
         self.entities.append(entity)
@@ -96,7 +94,6 @@ class World():
             e1.remove = True
         if isinstance(e2, Flame):
             e2.remove = True
-
 
         print "contact"
     
