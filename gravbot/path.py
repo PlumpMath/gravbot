@@ -5,6 +5,10 @@ from panda3d.bullet import BulletBodyNode
 from chunks import Chunk
 from math import hypot
 from heapq import heappop, heappush
+from player import Player
+
+mapX = 20
+mapY = 20
 
 # Build a voxel based representation
 # For the next n steps with delta d
@@ -12,10 +16,13 @@ def buildMap(collidableEntities, offset=None, steps=1, delta=1.0):
     if (offset == None):
         offset = Point2(0, 0)
 
-    cmap = [[0 for i in range(40)] for j in range(40)]
+    print "offset " + str(offset)
+
+    cmap = [[0 for i in range(mapX*2)] for j in range(mapY*2)]
     for entity in collidableEntities:
         if (isinstance(entity, Chunk)):
             pos = entity.np.getPos()
+            #print "entity position" + str(pos)
             tfm = entity.np.getMat()
             for i in range(entity.bnode.getNumShapes()):
                 stfm = entity.bnode.getShapeMat(i)
@@ -23,14 +30,25 @@ def buildMap(collidableEntities, offset=None, steps=1, delta=1.0):
                 stfm = tfm * stfm
                 tfp = stfm.xformPoint(spos)
                 tfp -= spos
-                # might be out of range    
+                # might be out of range   
+                print "trasnformed pos " + str(tfp)
+                print "point" + str(int(tfp.x-offset.x+mapX)) + " " + str(int(tfp.z-offset.y+mapY))
                 try:     
-                    cmap[int(tfp.z-offset.y)][int(tfp.x-offset.x)] = 1
+                    #cmap[int(tfp.z-offset.y+mapY)][int(tfp.x-offset.x+mapX)] = 1
+                    cmap[int(tfp.x-offset.x+mapX)][int(tfp.z-offset.y+mapY)] = 1
+                    #cmap[int(tfp.z-offset.y)][int(tfp.x-offset.x)] = 1
                 except:
+                    print "fail"
                     pass
     return cmap
 
 def findPath(location, target, cmap, size = 1.0):
+
+    for i in range(40):
+        for j in range(40):
+            if cmap[i][j] == 1:
+                print "this is one " + str(i) + " " + str(j)
+
     start = 0 
     goal = 0
     if isinstance(location, Point3):
@@ -42,6 +60,9 @@ def findPath(location, target, cmap, size = 1.0):
         goal = P2(int(target.x), int(target.z))
     if isinstance(target, Point2):    
         goal = P2(int(target.x), int(target.y))
+    
+    print start
+    print goal
 
     # with apologies to Stack Overflow
     # http://stackoverflow.com/questions/4159331/python-speed-up-an-a-star-pathfinding-algorithm
@@ -133,9 +154,9 @@ class P2():
 
 def printMap(cmap):
     s = ""
-    for i in range(20):
+    for i in range(mapX*2):
         line = ""
-        for j in range(20):
+        for j in range(mapY*2):
             line = line + str(cmap[i][j])
         s = line + '\n' + s
     print s

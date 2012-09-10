@@ -59,12 +59,18 @@ class Catcher(Enemy):
         self.node.setPos(self.location.x, self.depth, self.location.y)
 
     def update(self, time):
-         self.location = Point2(self.node.getPos().x, self.node.getPos().z)
-         print "self " + str(self.location) + " goal " + str(self.player.location) + "solution " 
-         path = findPath(self.location, self.player.location, self.cmap)
+         self.location = Point2(self.node.getPos().x - self.player.location.x, self.node.getPos().z - self.player.location.y)
+         #self.location = Point2(self.player.location.x - self.node.getPos().x, self.player.location.y - self.node.getPos().z)
+         print "self " + str(self.location)
+         if self.location.x > 20 or self.location.x < -20:
+             return
+         if self.location.y > 20 or self.location.y < -20:
+             return
+         #path = findPath(self.location, self.player.location, self.cmap)
+         path = findPath(Point2(self.location + Point2(20,20)), Point2(20,20), self.world.cmap)
          print path
          if len(path) > 1:
             move = path[1] - self.location
-            print move
-            self.bnode.applyCentralForce(Vec3(move.x,0,move.y))
+            print Vec3(move.x-20,0,move.y-20)
+            self.bnode.applyCentralForce(Vec3(move.x-20,0,move.y-20)*1)
 
