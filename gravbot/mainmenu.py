@@ -8,6 +8,7 @@ class MainMenu(GameScreen):
         GameScreen.__init__(self, app)
 
         LoadFontFace("menus/Delicious-Roman.otf")
+        LoadFontFace("menus/Raleway.otf")
 
         self.region = RocketRegion.make('pandaRocket', self.app.win)
         self.region.setActive(1)

@@ -70,9 +70,8 @@ class World():
                 self.entities.remove(entity)
 
         self.player.update(dt)
-        #self.cmap = buildMap(self.entities, self.player.location)
-        self.cmap = buildMap(self.entities[0:1], self.player.location)
-        printMap(self.cmap)
+        self.cmap = buildMap(self.entities, self.player.location)
+        #self.cmap = buildMap(self.entities[0:1], self.player.location)
 
         for entity in self.entities:
             entity.update(dt)
@@ -80,7 +79,7 @@ class World():
     def makeChunk(self, pos, size):
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))
         genFillBox(self, Point2(5,5), 3, 6, 'metalwalls')
-        #genBox(self, Point2(10,5), 2, 1, 'metalwalls')
+        genBox(self, Point2(10,5), 2, 1, 'metalwalls')
         #self.entities[0].bnode.applyTorque(Vec3(0,50,10))
 
     def addEntity(self, entity):

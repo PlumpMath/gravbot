@@ -83,8 +83,6 @@ class Chunk(Entity):
         self.bnode.setAngularSleepThreshold(20)
         self.bnode.setAngularVelocity(angVel)
 
-        self.bnode.setAngularFactor(0) # debug
-
         self.bnode.setLinearVelocity(linVel)
         self.np = utilities.app.render.attachNewNode(self.bnode)
         self.np.setPos(pos.x,20,pos.y)
