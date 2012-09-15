@@ -3,25 +3,41 @@ body
 	font-family: Raleway;
 	font-weight: normal;
 	font-style: normal;
-	font-size: 16;
+	font-size: 32;
+    top-margin: 5%;
+
+}
+
+.title
+{
+    margin: 50px;
+}
+
+h1
+{
+    text-align: center;
+	font-weight: bold;
+}
+
+.menuitem
+{
+    margin: 20px;
 }
 
 button
 {
-	width: 160px;
-
 	font-size: 18;
-	text-align: center;
-	
-	background-color: red;
+	text-align: left;
+    background-decorator: image;
+    background-image-src: inactivebutton.png;
 }
 
 button:hover
 {
-	background-color: blue;
+    background-image-src: hoverbutton.png;
 }
 
 button:active
 {
-	background-color: black;
+    background-image-src: activebutton.png;
 }
