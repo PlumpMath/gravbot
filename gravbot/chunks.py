@@ -159,7 +159,7 @@ class Chunk(Entity):
             h = self.np.getHpr()
             self.world.entities.append(Chunk(self.world, result, pos, h, diff, self.bnode.getAngularVelocity(), self.bnode.getLinearVelocity()))
 
-        self.destroy()
+        self.destroyNow()
         self.remove = True
         
     def searchBlock(self, block, lst, deleted):
@@ -185,10 +185,18 @@ class Chunk(Entity):
             self.maxX = max(point.pos.x, self.maxX)
             self.maxY = max(point.pos.y, self.maxY)
 
+    # Need to clear the bulletobject immediately
+    # so that the phys object isn't present during next sim phase
+    # which occurs before cleanup normally
+    def destroyNow(self):
+        self.world.bw.removeRigidBody(self.bnode)
+        
+        return
     def destroy(self):
         #for shape in self.bnode.getShapes():
         #    self.bnode.removeShape(shape)
-        self.world.bw.removeRigidBody(self.bnode)
+        #self.world.bw.removeRigidBody(self.bnode)
+        print "removed chunk"
         
         return
 

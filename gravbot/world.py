@@ -50,7 +50,7 @@ class World():
 
         self.mps = list()
 
-        #self.entities.append(Catcher(Point2(10, 10), self.player, self.cmap, self))
+        self.entities.append(Catcher(Point2(10, 10), self.player, self.cmap, self))
 
     def update(self, timer):
         dt = globalClock.getDt()

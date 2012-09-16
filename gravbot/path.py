@@ -20,6 +20,9 @@ def buildMap(collidableEntities, offset=None, steps=1, delta=1.0):
         offset = Point2(0, 0)
 
     cmap = [[0 for i in range(map2_x)] for j in range(map2_y)]
+
+    # set the player pos to be 0
+    # so we don't get unnecessary infinite loops 
     for entity in collidableEntities:
         if (isinstance(entity, Chunk)):
             pos = entity.np.getPos()
@@ -37,6 +40,11 @@ def buildMap(collidableEntities, offset=None, steps=1, delta=1.0):
 
                 if x_index in range(map2_x) and y_index in range(map2_y):
                     cmap[x_index][y_index] = 1
+
+    # set the player pos to be 0
+    # so we don't get unnecessary infinite loops 
+    cmap[map_x][map_y] = 0
+
     return cmap
 
 def findPath(location, target, cmap, size = 1.0):

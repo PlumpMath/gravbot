@@ -73,7 +73,7 @@ class Flame(Entity):
 
         self.np = utilities.app.render.attachNewNode(self.bnode)
 
-	self.remove = False
+        self.remove = False
 
         self.world =world 
         self.anim = list()
@@ -109,8 +109,8 @@ class Flame(Entity):
         self.bnode.setLinearFactor(Vec3(1,0,1))
         self.bnode.setGravity(Vec3(0,0,0))
 
-	#self.bnode.setCcdMotionThreshold(1e-7)
-	#self.bnode.setCcdSweptSphereRadius(0.50)
+        #self.bnode.setCcdMotionThreshold(1e-7)
+        #self.bnode.setCcdSweptSphereRadius(0.50)
 
         self.bnode.notifyCollisions(True)
         self.bnode.setIntoCollideMask(BitMask32.bit(1))
@@ -126,16 +126,16 @@ class Flame(Entity):
         self.obj = self.anim[self.curspr]
         self.obj.show() 
 
-	self.bnode.setPythonTag("entity", self)
+        self.bnode.setPythonTag("entity", self)
 
     def update(self, timer):
         #animation
         self.delta += timer
         self.livetime += timer
 
-	if self.remove:
-	    self.obj.hide()
-	    return
+        if self.remove:
+            self.obj.hide()
+            return
 
         if self.noCollideFrames == 0:
             self.bnode.setIntoCollideMask(BitMask32.allOn())
@@ -152,8 +152,8 @@ class Flame(Entity):
         self.obj = self.anim[self.curspr]
         self.obj.show()
 
-	if self.livetime > Flame.maxlife:
-	    self.remove = True
+        if self.livetime > Flame.maxlife:
+            self.remove = True
 
     def hitby(self, index, projectile):
         return
@@ -162,8 +162,8 @@ class Flame(Entity):
         self.remove = True
         self.obj.hide()
         for model in self.anim:
-	    model.remove()
-	self.world.bw.removeRigidBody(self.bnode)    
+            model.remove()
+        self.world.bw.removeRigidBody(self.bnode)    
 
 class Grenade(Item):
     """
