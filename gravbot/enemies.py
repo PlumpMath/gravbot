@@ -77,12 +77,13 @@ class Catcher(Enemy):
         if (self.health < 0):
             self.remove = True
         greyscale  = 0.3 + (0.01 * self.health)
-        self.obj.setColor(greyscale, greyscale,greyscale,greyscale)
+        self.obj.setColor(1, greyscale,greyscale,1)
         return False
 
     def removeOnHit(self):
         return
 
     def destroy(self):
+        self.obj.hide()
         self.world.bw.removeRigidBody(self.bnode)
 
