@@ -56,13 +56,9 @@ class World():
         dt = globalClock.getDt()
         self.bw.doPhysics(dt, 5, 1.0/180.0)
         
-        for entity in self.entities:
-            if isinstance(entity, Flame):
-                ctest = self.bw.contactTest(entity.bnode)
-                if ctest.getNumContacts() > 0:
-                    entity.remove = True
-                    mp =  ctest.getContacts()[0].getManifoldPoint()
-                    ctest.getContacts()[0].getNode0().getPythonTag("entity").hitby(Flame, mp.getIndex0())
+        self.doHits(Flame)
+
+        self.doHits(Catcher)
 
         for entity in self.entities:
             if entity.remove == True:
@@ -71,10 +67,21 @@ class World():
 
         self.player.update(dt)
         self.cmap = buildMap(self.entities, self.player.location)
-        #self.cmap = buildMap(self.entities[0:1], self.player.location)
 
         for entity in self.entities:
             entity.update(dt)
+
+    def doHits(self, hit_type):
+        for entity in self.entities:
+            if isinstance(entity, hit_type):
+                ctest = self.bw.contactTest(entity.bnode)
+                if ctest.getNumContacts() > 0:
+                    entity.removeOnHit()
+                    mp =  ctest.getContacts()[0].getManifoldPoint()
+                    if isinstance(ctest.getContacts()[0].getNode0().getPythonTag("entity"), hit_type):
+                        ctest.getContacts()[0].getNode1().getPythonTag("entity").hitby(hit_type, mp.getIndex0())
+                    else:    
+                        ctest.getContacts()[0].getNode0().getPythonTag("entity").hitby(hit_type, mp.getIndex0())
 
     def makeChunk(self, pos, size):
         self.bgs.append(utilities.loadObject("stars", depth=100, scaleX=200, scaleY=200.0, pos=Point2(pos.x*worldsize.x,pos.y*worldsize.y)))

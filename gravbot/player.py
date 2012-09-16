@@ -41,7 +41,7 @@ class Player(Entity):
         self.bnode.setLinearSleepThreshold(0)
 
         world.bw.attachRigidBody(self.bnode)
-        self.bnode.setPythonTag("Entity", self)
+        self.bnode.setPythonTag("entity", self)
         self.bnode.setIntoCollideMask(BitMask32.bit(0))
 
         self.node = utilities.app.render.attachNewNode(self.bnode)
@@ -130,5 +130,11 @@ class Player(Entity):
         self.crouchToggle = switch
 
 
-    def hitby(self, index, projectile):
-        return
+    def hitby(self, projectile, index):
+        self.health -= projectile.damage 
+        if (self.health < 0):
+            self.obj.setColor(1,0,0,1)
+            return True
+        greyscale  = 0.3 + (0.01 * self.health)
+        self.obj.setColor(greyscale, greyscale,greyscale,greyscale)
+        return False

@@ -165,6 +165,9 @@ class Flame(Entity):
             model.remove()
         self.world.bw.removeRigidBody(self.bnode)    
 
+    def removeOnHit(self):
+        self.remove = True
+
 class Grenade(Item):
     """
     'Nades

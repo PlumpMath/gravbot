@@ -152,7 +152,7 @@ class Chunk(Entity):
     
         for result in results:
             self.minMax(result)
-        #diff = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
+            #diff = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
             diff = Vec3((self.minX+self.maxX) / 2.0, 0, (self.minY+self.maxY) / 2.0)
             p = self.np.getPos()
             pos = Point2(p.x, p.z)
@@ -185,19 +185,17 @@ class Chunk(Entity):
             self.maxX = max(point.pos.x, self.maxX)
             self.maxY = max(point.pos.y, self.maxY)
 
-    # Need to clear the bulletobject immediately
+    # Need to clear the bulletrigidbody immediately
     # so that the phys object isn't present during next sim phase
-    # which occurs before cleanup normally
+    # which occurs before cleanup normally. Otherwise shit will
+    # fly everywhere since two things are inside each other
     def destroyNow(self):
         self.world.bw.removeRigidBody(self.bnode)
         
         return
+
+    # since this is handled earlier nothing happens    
     def destroy(self):
-        #for shape in self.bnode.getShapes():
-        #    self.bnode.removeShape(shape)
-        #self.world.bw.removeRigidBody(self.bnode)
-        print "removed chunk"
-        
         return
 
     def hitby(self, projectile, index):

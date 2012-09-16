@@ -22,6 +22,8 @@ class Enemy(Entity):
 
 # melee.
 class Catcher(Enemy):
+    damage = 25
+
     def __init__(self, location, player, cmap, world):
         super(Catcher, self).__init__(location)
         self.player = player
@@ -47,7 +49,7 @@ class Catcher(Enemy):
         self.bnode.setLinearSleepThreshold(0)
 
         world.bw.attachRigidBody(self.bnode)
-        self.bnode.setPythonTag("Entity", self)
+        self.bnode.setPythonTag("entity", self)
         self.bnode.setIntoCollideMask(BitMask32.bit(0))
 
         self.node = utilities.app.render.attachNewNode(self.bnode)
@@ -65,9 +67,22 @@ class Catcher(Enemy):
              return
          if self.location.y > 20 or self.location.y < -20:
              return
-         #path = findPath(self.location, self.player.location, self.cmap)
          path = findPath(Point2(self.location + Point2(20,20)), Point2(20,20), self.world.cmap)
          if len(path) > 1:
             move = path[1] - self.location
             self.bnode.applyCentralForce(Vec3(move.x-20,0,move.y-20))
+    
+    def hitby(self, projectile, index):
+        self.health -= projectile.damage 
+        if (self.health < 0):
+            self.remove = True
+        greyscale  = 0.3 + (0.01 * self.health)
+        self.obj.setColor(greyscale, greyscale,greyscale,greyscale)
+        return False
+
+    def removeOnHit(self):
+        return
+
+    def destroy(self):
+        self.world.bw.removeRigidBody(self.bnode)
 
