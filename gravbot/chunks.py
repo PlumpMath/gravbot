@@ -93,7 +93,7 @@ class Chunk(Entity):
 
         self.inScope = False # culling not done yet
 
-    # centre the blocks around the np and add their shapes in.
+        # centre the blocks around the np and add their shapes in.
         self.minMax()
         cog = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
         for block in blocks:
@@ -142,8 +142,8 @@ class Chunk(Entity):
             self.searchBlock(block, chunk, deadblock)
             out.append(chunk)
 
-    #out is a list of lists of populated blocks
-    #remove duplicate chunks
+        #out is a list of lists of populated blocks
+        #remove duplicate chunks
         results = list()
         for chunk in out:
             chunk.sort(compareBlock)
@@ -153,11 +153,11 @@ class Chunk(Entity):
         for result in results:
             self.minMax(result)
         #diff = Point2((self.minX+self.maxX) / 2.0, (self.minY+self.maxY) / 2.0)
-        diff = Vec3((self.minX+self.maxX) / 2.0, 0, (self.minY+self.maxY) / 2.0)
-        p = self.np.getPos()
-        pos = Point2(p.x, p.z)
-        h = self.np.getHpr()
-        self.world.entities.append(Chunk(self.world, result, pos, h, diff, self.bnode.getAngularVelocity(), self.bnode.getLinearVelocity()))
+            diff = Vec3((self.minX+self.maxX) / 2.0, 0, (self.minY+self.maxY) / 2.0)
+            p = self.np.getPos()
+            pos = Point2(p.x, p.z)
+            h = self.np.getHpr()
+            self.world.entities.append(Chunk(self.world, result, pos, h, diff, self.bnode.getAngularVelocity(), self.bnode.getLinearVelocity()))
 
         self.destroy()
         self.remove = True
