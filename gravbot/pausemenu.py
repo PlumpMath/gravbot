@@ -8,10 +8,9 @@ class PauseMenu(GameScreen):
 
         self.parent = parent
 
-        LoadFontFace("menus/Delicious-Roman.otf")
+        LoadFontFace("menus/Raleway.otf")
 
         self.region = RocketRegion.make('pauseMenuRegion', self.app.win)
-        print self.region.__doc__
         self.region.setActive(1)
         self.context = self.region.getContext()
 
