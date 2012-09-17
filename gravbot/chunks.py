@@ -13,7 +13,6 @@ from panda3d.bullet import BulletRigidBodyNode
 import utilities
 from items import Flame
 from copy import copy
-from utilities import Pix
 from math import hypot
 
 def compareBlock(block1, block2):
@@ -23,8 +22,6 @@ def compareBlock(block1, block2):
     y = block1.pos.y - block2.pos.y
     if y != 0: 
         return int(y)
-    #bad
-    print "bad"
     return 0
 
 class Block(Entity):

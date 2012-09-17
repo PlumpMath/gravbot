@@ -50,6 +50,10 @@ class ExploreScreen(GameScreen):
 
         self.app.accept("mouse1", self.world.player.activate, [])
 
+        self.app.accept("q", self.world.player.scrollItem, [1])
+        self.app.accept("1", self.world.player.selectItem, [1])
+        self.app.accept("2", self.world.player.selectItem, [2])
+
         self.app.accept("escape", sys.exit, [])
 
         self.app.accept("p", self.pause, []) 

@@ -24,7 +24,7 @@ class Player(Entity):
 
         self.world = world 
         self.health = 100
-        self.inventory = dict()
+        self.inventory = list()
 
         self.depth = self.obj.getPos().y
 
@@ -53,20 +53,16 @@ class Player(Entity):
         self.node.setPos(self.location.x, self.depth, self.location.y)
 
     def initialise(self):
-        self.inventory["LightLaser"] = LightLaser(self.world, self)
-        self.inventory["Blowtorch"] = Blowtorch(self.world, self)
-        self.inventory["Grenade"] = Grenade(self.world, self)
+        self.inventory.append(LightLaser(self.world, self))
+        self.inventory.append(Blowtorch(self.world, self))
+        #self.inventory["Grenade"] = Grenade(self.world, self)
 
-        for i in self.inventory:
-            self.inventory[i].initialise()
+        for item in self.inventory:
+            item.initialise()
 
-        self.currentItem = self.inventory["Blowtorch"]
+        self.currentItemIndex = 1
+        self.currentItem = self.inventory[self.currentItemIndex]
         self.currentItem.equip()
-
-        #self.armNode = self.obj.attachNewNode("arm")
-        #self.armNode.setPos(0.20,0,0.08)
-        #self.arm = utilities.loadObject("arm", scaleX = 0.5,scaleY = 0.5, depth = -0.2)
-        #self.arm.reparentTo(self.armNode)
 
     def activate(self):
         self.currentItem.activate()
@@ -117,11 +113,9 @@ class Player(Entity):
 
     def moveLeft(self, switch):
         self.leftMove = switch 
-        #self.bnode.applyCentralForce(Vec3(-500,0,0))
 
     def moveRight(self, switch):
         self.rightMove = switch 
-        #self.bnode.applyCentralForce(Vec3(500,0,0))
 
     def jump(self, switch):
         self.jumpToggle = switch
@@ -129,6 +123,23 @@ class Player(Entity):
     def crouch(self, switch):
         self.crouchToggle = switch
 
+    def scrollItem(self, number):
+        self.currentItem.unequip()
+        self.currentItemIndex = self.currentItemIndex + number
+        if self.currentItemIndex < 0:
+            self.currentItemIndex = len(self.inventory) - 1 
+        if self.currentItemIndex > len(self.inventory) - 1:
+            self.currentItemIndex = 0
+
+        self.currentItem = self.inventory[self.currentItemIndex]
+        self.currentItem.equip()
+
+    def selectItem(self, number):
+        if (number - 1 < len(self.inventory) and number - 1 >= 0):
+            self.currentItem.unequip()
+            self.currentItemIndex = number - 1
+            self.currentItem = self.inventory[self.currentItemIndex]
+            self.currentItem.equip()
 
     def hitby(self, projectile, index):
         self.health -= projectile.damage 
