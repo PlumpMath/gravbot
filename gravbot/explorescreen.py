@@ -1,6 +1,3 @@
-from gamescreen import GameScreen
-from pausemenu import PauseMenu
-
 from math import pi, sin, cos
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
@@ -13,7 +10,6 @@ from panda3d.bullet import BulletPlaneShape
 from panda3d.bullet import BulletRigidBodyNode
 from panda3d.bullet import BulletDebugNode
 
-
 from entity import Entity
 from player import Player
 from world import World
@@ -24,11 +20,10 @@ import sys
 from pandac.PandaModules import loadPrcFileData 
 
 
-class ExploreScreen(GameScreen):
+class ExploreScreen():
 
     def __init__(self, app):
-
-        GameScreen.__init__(self, app)
+        self.app = app
 
         utilities.setApp(self.app)
 
@@ -56,8 +51,6 @@ class ExploreScreen(GameScreen):
 
         self.app.accept("escape", sys.exit, [])
 
-        self.app.accept("p", self.pause, []) 
-
         self.app.mousePos = Point2()
         self.app.disableMouse()
 
@@ -83,14 +76,7 @@ class ExploreScreen(GameScreen):
 	else:
 	    self.debugNP.hide()    
 
-    def pause(self):
-        self.app.taskMgr.remove("update")
-        self.pausemenu = PauseMenu(self.app, self)
-
-        self.pausemenu.enter()
-
     def resume(self):
-
         self.app.taskMgr.add(self.update, "update")
 
     def update(self, task):
